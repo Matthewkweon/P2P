@@ -50,6 +50,7 @@ class MockWriter:
 def reset_server_state():
     # Reset server state between tests
     async_server.clients = {}
+    async_server.pending_messages = {}
     yield
 
 # Server unit tests
@@ -139,26 +140,29 @@ class TestServer:
         assert found_message, "Message was not delivered to receiver"
     
     @pytest.mark.asyncio
-    async def test_handle_client_invalid_target(self, reset_server_state):
-        # Test sending to a non-existent user
+    async def test_handle_client_stores_message_for_offline_user(self, reset_server_state):
         username = "testuser"
-        nonexistent_user = "nobody"
-        test_message = f"{nonexistent_user}: Hello nobody!"
-        
+        offline_user = "nobody"
+        test_message = f"{offline_user}: Hello nobody!"
+
         reader = MockReader([username, test_message, "exit"])
         writer = MockWriter()
-        
+
         await async_server.handle_client(reader, writer)
-        
-        # Check if the error message was sent to the sender
+
+        # ✅ Use the correct reference from async_server
+        assert offline_user in async_server.pending_messages, \
+            f"Offline user not found in pending_messages. Current: {async_server.pending_messages}"
+
+        stored = async_server.pending_messages[offline_user]
+        assert any("Hello nobody!" in msg for msg in stored), "Message was not stored for offline user"
+
+        # ✅ Optional: Ensure no error message was sent to the sender
         sender_messages = [msg.decode() for msg in writer.written_data]
-        found_error = False
-        for msg in sender_messages:
-            if f"User '{nonexistent_user}' not found" in msg:
-                found_error = True
-                break
-                
-        assert found_error, "Error message for non-existent user not delivered"
+        assert all(f"User '{offline_user}' not found" not in msg for msg in sender_messages), \
+            "Unexpected error message was sent for offline user"
+
+
     
     @pytest.mark.asyncio
     async def test_handle_client_invalid_format(self, reset_server_state):

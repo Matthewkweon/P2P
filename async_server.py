@@ -2,15 +2,15 @@ import asyncio
 
 HOST = '127.0.0.1'  # Localhost
 PORT = 5000  # Server Port
-clients = {}  # Stores username -> (reader, writer)
+clients = {}  # username -> (reader, writer)
+pending_messages = {}  # username -> list of pending messages
 
 async def send_message(writer, message):
-    """Send a message to a specific client."""
     try:
         writer.write(message.encode())
         await writer.drain()
     except:
-        pass  # Ignore errors from disconnected clients
+        pass  # Ignore write errors
 
 async def handle_client(reader, writer):
     """Handles communication with a connected client."""
@@ -28,8 +28,14 @@ async def handle_client(reader, writer):
     clients[username] = (reader, writer)
     print(f"{username} connected.")
 
-    # Notify the client of the available users
+    # Notify about current users
     await send_message(writer, f"Connected! Users online: {', '.join(clients.keys())}\n")
+
+    # Deliver pending messages
+    if username in pending_messages:
+        for msg in pending_messages[username]:
+            await send_message(writer, f"[Stored] {msg}\n")
+        del pending_messages[username]  # Clear after delivering
 
     try:
         while True:
@@ -41,37 +47,40 @@ async def handle_client(reader, writer):
             if message.lower() == "exit":
                 break
 
-            # Expected format: "TO:USERNAME MESSAGE"
+            # Expected format: "TO_USERNAME: MESSAGE"
             if ":" in message:
-                target_user, msg_content = message.strip().split(":", 1)
+                target_user, msg_content = message.split(":", 1)
                 target_user = target_user.strip()
                 msg_content = msg_content.strip()
 
+                full_msg = f"[{username}] {msg_content}"
+
                 if target_user in clients:
                     _, target_writer = clients[target_user]
-                    await send_message(target_writer, f"[{username}] {msg_content}\n")
+                    await send_message(target_writer, full_msg + "\n")
                 else:
-                    await send_message(writer, f"User '{target_user}' not found.\n")
+                    # Store message for later delivery
+                    if target_user not in pending_messages:
+                        pending_messages[target_user] = []
+                    pending_messages[target_user].append(full_msg)
+                    await send_message(writer, f"User '{target_user}' is offline. Message saved.\n")
             else:
-                await send_message(writer, "Invalid format. Use: USERNAME: MESSAGE\n")
+                await send_message(writer, "Invalid format. Use: TO_USERNAME: MESSAGE\n")
     except:
-        pass  # Handle disconnections
+        pass
 
-    # Cleanup when client disconnects
+    # Cleanup
     print(f"{username} disconnected.")
     del clients[username]
     writer.close()
     await writer.wait_closed()
 
 async def main():
-    """Starts the server and listens for client connections."""
     server = await asyncio.start_server(handle_client, HOST, PORT)
     addr = server.sockets[0].getsockname()
     print(f"Server running on {addr}")
-
     async with server:
         await server.serve_forever()
 
-# Run the server
 if __name__ == "__main__":
     asyncio.run(main())
