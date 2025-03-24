@@ -33,10 +33,7 @@ jobs:
         pytest -xvs test_chat_app.py
     
     - name: Upload test results
-      uses: actions/upload-artifact@v3
-      if: always()
+      uses: actions/upload-artifact@v4
       with:
-        name: pytest-results-${{ matrix.python-version }}
-        path: |
-          .pytest_cache
-          test-reports/
+        name: test-results
+        path: ./results/
