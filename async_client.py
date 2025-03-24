@@ -42,4 +42,6 @@ async def handle_client():
     await asyncio.gather(receive(), send())
 
 # Run the client
-asyncio.run(handle_client())
+    
+if __name__ == "main":
+    asyncio.run(handle_client())

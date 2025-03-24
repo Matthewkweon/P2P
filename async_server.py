@@ -54,8 +54,6 @@ async def handle_client(reader, writer):
                     await send_message(writer, f"User '{target_user}' not found.\n")
             else:
                 await send_message(writer, "Invalid format. Use: USERNAME: MESSAGE\n")
-
-
     except:
         pass  # Handle disconnections
 
@@ -75,4 +73,5 @@ async def main():
         await server.serve_forever()
 
 # Run the server
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
