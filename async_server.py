@@ -1,5 +1,7 @@
 import asyncio
-import httpx  # NEW
+import httpx  
+from datetime import datetime
+
 
 
 HOST = '127.0.0.1'  # Localhost
@@ -15,14 +17,24 @@ async def send_message(writer, message):
     except:
         pass  # Ignore write errors
 
-async def store_message(username, message):
+async def store_message(sender, destination, message):
     async with httpx.AsyncClient() as client:
-        await client.post(f"{API_BASE}/messages/", json={"username": username, "message": message})
+        await client.post(f"{API_BASE}/messages/", json={
+            "sender": sender,
+            "destination": destination,
+            "message": message,
+            "timestamp": datetime.utcnow().isoformat()
+        })
+
 
 async def get_stored_messages(username):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{API_BASE}/messages/{username}")
-        return response.json().get("messages", [])
+        messages = response.json().get("messages", [])
+        return [
+            f"[Stored][{msg['timestamp']}][{msg['sender']}] {msg['message']}"
+            for msg in messages
+        ]
 
 async def handle_client(reader, writer):
     writer.write("Enter your username: ".encode())
@@ -61,13 +73,13 @@ async def handle_client(reader, writer):
                 target_user = target_user.strip()
                 msg_content = msg_content.strip()
 
-                full_msg = f"[{username}] {msg_content}"
+                timestamp = datetime.utcnow().isoformat()
 
                 if target_user in clients:
                     _, target_writer = clients[target_user]
-                    await send_message(target_writer, full_msg + "\n")
+                    await send_message(target_writer, f"[{username}][{timestamp}] {msg_content}\n")
                 else:
-                    await store_message(target_user, full_msg)
+                    await store_message(username, target_user, msg_content)
                     await send_message(writer, f"User '{target_user}' is offline. Message saved.\n")
             else:
                 await send_message(writer, "Invalid format. Use: TO_USERNAME: MESSAGE\n")
