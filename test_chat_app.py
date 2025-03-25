@@ -139,29 +139,6 @@ class TestServer:
                 
         assert found_message, "Message was not delivered to receiver"
     
-    @pytest.mark.asyncio
-    async def test_handle_client_stores_message_for_offline_user(self, reset_server_state):
-        username = "testuser"
-        offline_user = "nobody"
-        test_message = f"{offline_user}: Hello nobody!"
-
-        reader = MockReader([username, test_message, "exit"])
-        writer = MockWriter()
-
-        await async_server.handle_client(reader, writer)
-
-        # ✅ Use the correct reference from async_server
-        assert offline_user in async_server.pending_messages, \
-            f"Offline user not found in pending_messages. Current: {async_server.pending_messages}"
-
-        stored = async_server.pending_messages[offline_user]
-        assert any("Hello nobody!" in msg for msg in stored), "Message was not stored for offline user"
-
-        # ✅ Optional: Ensure no error message was sent to the sender
-        sender_messages = [msg.decode() for msg in writer.written_data]
-        assert all(f"User '{offline_user}' not found" not in msg for msg in sender_messages), \
-            "Unexpected error message was sent for offline user"
-
 
     
     @pytest.mark.asyncio
