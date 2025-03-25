@@ -1,9 +1,12 @@
 import asyncio
+import httpx  # NEW
+
 
 HOST = '127.0.0.1'  # Localhost
 PORT = 5000  # Server Port
 clients = {}  # username -> (reader, writer)
-pending_messages = {}  # username -> list of pending messages
+API_BASE = 'http://127.0.0.1:8000'  # FastAPI address
+
 
 async def send_message(writer, message):
     try:
@@ -12,8 +15,16 @@ async def send_message(writer, message):
     except:
         pass  # Ignore write errors
 
+async def store_message(username, message):
+    async with httpx.AsyncClient() as client:
+        await client.post(f"{API_BASE}/messages/", json={"username": username, "message": message})
+
+async def get_stored_messages(username):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{API_BASE}/messages/{username}")
+        return response.json().get("messages", [])
+
 async def handle_client(reader, writer):
-    """Handles communication with a connected client."""
     writer.write("Enter your username: ".encode())
     await writer.drain()
     username = (await reader.read(1024)).decode().strip()
@@ -28,14 +39,12 @@ async def handle_client(reader, writer):
     clients[username] = (reader, writer)
     print(f"{username} connected.")
 
-    # Notify about current users
     await send_message(writer, f"Connected! Users online: {', '.join(clients.keys())}\n")
 
-    # Deliver pending messages
-    if username in pending_messages:
-        for msg in pending_messages[username]:
-            await send_message(writer, f"[Stored] {msg}\n")
-        del pending_messages[username]  # Clear after delivering
+    # 🔄 Retrieve stored messages
+    stored_msgs = await get_stored_messages(username)
+    for msg in stored_msgs:
+        await send_message(writer, f"[Stored] {msg}\n")
 
     try:
         while True:
@@ -47,7 +56,6 @@ async def handle_client(reader, writer):
             if message.lower() == "exit":
                 break
 
-            # Expected format: "TO_USERNAME: MESSAGE"
             if ":" in message:
                 target_user, msg_content = message.split(":", 1)
                 target_user = target_user.strip()
@@ -59,21 +67,18 @@ async def handle_client(reader, writer):
                     _, target_writer = clients[target_user]
                     await send_message(target_writer, full_msg + "\n")
                 else:
-                    # Store message for later delivery
-                    if target_user not in pending_messages:
-                        pending_messages[target_user] = []
-                    pending_messages[target_user].append(full_msg)
+                    await store_message(target_user, full_msg)
                     await send_message(writer, f"User '{target_user}' is offline. Message saved.\n")
             else:
                 await send_message(writer, "Invalid format. Use: TO_USERNAME: MESSAGE\n")
     except:
         pass
 
-    # Cleanup
     print(f"{username} disconnected.")
     del clients[username]
     writer.close()
     await writer.wait_closed()
+
 
 async def main():
     server = await asyncio.start_server(handle_client, HOST, PORT)
