@@ -14,6 +14,9 @@ async def handle_client():
     writer.write(username.encode() + b'\n')
     await writer.drain()
 
+    print("Type 'TO_USER: message' to send a message. Type '!check' to view stored messages. Type 'exit' to disconnect.")
+
+
     async def receive():
         """Handles incoming messages from the server."""
         while True:
@@ -43,3 +46,4 @@ async def handle_client():
 
 if __name__ == "__main__":
     asyncio.run(handle_client())
+

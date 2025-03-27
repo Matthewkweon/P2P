@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone, UTC
 from motor.motor_asyncio import AsyncIOMotorClient
 from typing import List
 import uvicorn
@@ -23,7 +23,9 @@ class Message(BaseModel):
     sender: str
     destination: str
     message: str
-    timestamp: str = datetime.utcnow().isoformat()
+    timestamp: str = datetime.now(UTC).isoformat()
+    type: str = "chat"  # can be "chat", "command", "notification", or "subscription"
+    metadata: dict = {}  # optional metadata for special message types
 
 
 @app.post("/messages/")

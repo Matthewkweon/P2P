@@ -1,6 +1,6 @@
 import asyncio
 import httpx  
-from datetime import datetime
+from datetime import datetime, timezone, UTC
 
 
 
@@ -23,7 +23,9 @@ async def store_message(sender, destination, message):
             "sender": sender,
             "destination": destination,
             "message": message,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
+            "type": "chat",
+            "metadata": {}
         })
 
 
@@ -32,7 +34,7 @@ async def get_stored_messages(username):
         response = await client.get(f"{API_BASE}/messages/{username}")
         messages = response.json().get("messages", [])
         return [
-            f"[{msg['timestamp']}][{msg['sender']}] {msg['message']}"
+            f"[{msg['type'].upper()}][{msg['timestamp']}][{msg['sender']}] {msg['message']} {f'Metadata: {msg["metadata"]}' if msg.get('metadata') else ''}"
             for msg in messages
         ]
 
@@ -67,13 +69,18 @@ async def handle_client(reader, writer):
             message = data.decode().strip()
             if message.lower() == "exit":
                 break
+            elif message.lower() == "!check":
+                stored_msgs = await get_stored_messages(username)
+                for msg in stored_msgs:
+                    await send_message(writer, f"[Stored] {msg}\n")
+                continue
 
             if ":" in message:
                 target_user, msg_content = message.split(":", 1)
                 target_user = target_user.strip()
                 msg_content = msg_content.strip()
 
-                timestamp = datetime.utcnow().isoformat()
+                timestamp = datetime.now(UTC).isoformat()
 
                 if target_user in clients:
                     _, target_writer = clients[target_user]

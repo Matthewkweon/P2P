@@ -26,11 +26,41 @@ class Message(BaseModel):
     destination: str
     message: str
     timestamp: str = datetime.utcnow().isoformat()
+    type: str = "chat"  # can be "chat", "command", "notification", or "subscription"
+    metadata: dict = {}  # optional metadata for special message types
 ```
 
 This is a straightforward protocol and allows me to easily replicate this type of message. Allows me to track the time that the message was sent and also allows me to know who sent the message to who (sender -> receive).
 
-We needed the sender, destination, message, and timestamp
+I also added a type: str = "chat" to determine if I want to add a different type of message or service in my code. For example, I added a subscription type that once you subscribe to the thermometer user, you will get broadcasted messages about the weather outside. 
+
+Simply run
+```
+python thermometer.py
+```
+to run the thermometer service
+
+To subscribe to the thermometer, run:
+```
+thermomter1: subscribe
+```
+This will broadcast the temperature outside (random values) every 100 seconds or so.
+
+To reboot the subscription, run:
+```
+thermometer1: reboot
+```
+This will reboot the subscription.
+
+To see the range of values from the subscription, run:
+```
+thermometer1: range
+```
+
+Each of these commands will give you a message in your "messages" after you run "!check".
+
+We needed the sender, destination, message, and timestamp to keep a structure for when users send messages to each other.
+
 ## Requirements
 
 - Python 3.12.4
@@ -117,6 +147,12 @@ Once Joe connects to the server, it will say that:
 ```
 [Stored] [timestamp][sender] 'message_here'
 ```
+
+To check for any messages from subscriptions or any messages from the database run:
+```
+!check
+```
+This will give you all of the messages that you haven't seen you from the database. This occurs automatically when you log into the service, but also you can manually do it with "!check".
 
 ### Commands
 
