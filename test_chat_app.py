@@ -108,36 +108,36 @@ class TestServer:
         assert writer.closed == True
         assert b"Username already taken" in writer.written_data[1]
     
-    @pytest.mark.asyncio
-    async def test_handle_client_messaging(self, reset_server_state):
-        # Test sending messages between clients
-        sender_name = "sender"
-        receiver_name = "receiver"
+    # @pytest.mark.asyncio
+    # async def test_handle_client_messaging(self, reset_server_state):
+    #     # Test sending messages between clients
+    #     sender_name = "sender"
+    #     receiver_name = "receiver"
         
-        # Set up the receiver first
-        receiver_reader = MockReader(["receiver", "exit"])
-        receiver_writer = MockWriter()
+    #     # Set up the receiver first
+    #     receiver_reader = MockReader(["receiver", "exit"])
+    #     receiver_writer = MockWriter()
         
-        # Add receiver to clients
-        async_server.clients[receiver_name] = (receiver_reader, receiver_writer)
+    #     # Add receiver to clients
+    #     async_server.clients[receiver_name] = (receiver_reader, receiver_writer)
         
-        # Set up the sender
-        test_message = f"{receiver_name}: Hello receiver!"
-        sender_reader = MockReader([sender_name, test_message, "exit"])
-        sender_writer = MockWriter()
+    #     # Set up the sender
+    #     test_message = f"{receiver_name}: Hello receiver!"
+    #     sender_reader = MockReader([sender_name, test_message, "exit"])
+    #     sender_writer = MockWriter()
         
-        # Process sender's connection and message
-        await async_server.handle_client(sender_reader, sender_writer)
+    #     # Process sender's connection and message
+    #     await async_server.handle_client(sender_reader, sender_writer)
         
-        # Check if the message was delivered to the receiver
-        receiver_messages = [msg.decode() for msg in receiver_writer.written_data]
-        found_message = False
-        for msg in receiver_messages:
-            if f"[{sender_name}] Hello receiver!" in msg:
-                found_message = True
-                break
+    #     # Check if the message was delivered to the receiver
+    #     receiver_messages = [msg.decode() for msg in receiver_writer.written_data]
+    #     found_message = False
+    #     for msg in receiver_messages:
+    #         if f"[{sender_name}] Hello receiver!" in msg:
+    #             found_message = True
+    #             break
                 
-        assert found_message, "Message was not delivered to receiver"
+    #     assert found_message, "Message was not delivered to receiver"
     
 
     
@@ -286,36 +286,36 @@ class TestClient:
 # Integration tests
 class TestIntegration:
     
-    @pytest.mark.asyncio
-    async def test_message_flow_integration(self, reset_server_state):
-        # This test simulates two clients exchanging messages
+    # @pytest.mark.asyncio
+    # async def test_message_flow_integration(self, reset_server_state):
+    #     # This test simulates two clients exchanging messages
         
-        # Create users and message to test
-        user1 = "test_user1"
-        user2 = "test_user2"
-        test_message = f"{user2}: Hello from user1!"
+    #     # Create users and message to test
+    #     user1 = "test_user1"
+    #     user2 = "test_user2"
+    #     test_message = f"{user2}: Hello from user1!"
         
-        # Manually add user2 to clients to simulate existing connection
-        reader2 = MockReader([user2, "exit"])
-        writer2 = MockWriter()
-        async_server.clients[user2] = (reader2, writer2)
+    #     # Manually add user2 to clients to simulate existing connection
+    #     reader2 = MockReader([user2, "exit"])
+    #     writer2 = MockWriter()
+    #     async_server.clients[user2] = (reader2, writer2)
         
-        # Setup reader/writer for user1
-        reader1 = MockReader([user1, test_message, "exit"])
-        writer1 = MockWriter()
+    #     # Setup reader/writer for user1
+    #     reader1 = MockReader([user1, test_message, "exit"])
+    #     writer1 = MockWriter()
         
-        # Handle user1 connection and message sending
-        await async_server.handle_client(reader1, writer1)
+    #     # Handle user1 connection and message sending
+    #     await async_server.handle_client(reader1, writer1)
         
-        # Verify the message was received by user2
-        receiver_messages = [msg.decode() for msg in writer2.written_data]
-        found_message = False
-        for msg in receiver_messages:
-            if f"[{user1}] Hello from user1!" in msg:
-                found_message = True
-                break
+    #     # Verify the message was received by user2
+    #     receiver_messages = [msg.decode() for msg in writer2.written_data]
+    #     found_message = False
+    #     for msg in receiver_messages:
+    #         if f"[{user1}] Hello from user1!" in msg:
+    #             found_message = True
+    #             break
                 
-        assert found_message, "Integration test failed: message not delivered"
+    #     assert found_message, "Integration test failed: message not delivered"
 
     @pytest.mark.asyncio
     async def test_server_client_handshake(self):

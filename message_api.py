@@ -1,14 +1,24 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import Dict, List
 from datetime import datetime
+from motor.motor_asyncio import AsyncIOMotorClient
+from typing import List
 import uvicorn
+import os
+from dotenv import load_dotenv
+load_dotenv()
+from bson import ObjectId
 
 app = FastAPI()
 
-# New structure: username -> List of full message dicts
-pending_messages: Dict[str, List[Dict[str, str]]] = {}
+# Connect to MongoDB using MONGO_URL from .env
+MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+client = AsyncIOMotorClient(MONGO_URL)
+db = client["messaging_db"]
+collection = db["messages"]
 
+
+# Pydantic message model
 class Message(BaseModel):
     sender: str
     destination: str
@@ -17,19 +27,24 @@ class Message(BaseModel):
 
 
 @app.post("/messages/")
-def store_message(msg: Message):
-    if msg.destination not in pending_messages:
-        pending_messages[msg.destination] = []
-    pending_messages[msg.destination].append({
-        "sender": msg.sender,
-        "message": msg.message,
-        "timestamp": msg.timestamp
-    })
+async def store_message(msg: Message):
+    await collection.insert_one(msg.dict())
     return {"status": "stored"}
 
+
+
 @app.get("/messages/{username}")
-def get_messages(username: str):
-    messages = pending_messages.pop(username, [])
+async def get_messages(username: str):
+    cursor = collection.find({"destination": username})
+    raw_messages = await cursor.to_list(length=None)
+    
+    # Convert ObjectId to string
+    messages = []
+    for msg in raw_messages:
+        msg["_id"] = str(msg["_id"])  # make ObjectId serializable
+        messages.append(msg)
+
+    await collection.delete_many({"destination": username})
     return {"messages": messages}
 
 
