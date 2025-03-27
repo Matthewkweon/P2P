@@ -32,7 +32,7 @@ async def get_stored_messages(username):
         response = await client.get(f"{API_BASE}/messages/{username}")
         messages = response.json().get("messages", [])
         return [
-            f"[Stored][{msg['timestamp']}][{msg['sender']}] {msg['message']}"
+            f"[{msg['timestamp']}][{msg['sender']}] {msg['message']}"
             for msg in messages
         ]
 

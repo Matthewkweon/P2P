@@ -14,12 +14,26 @@ A simple asynchronous chat application built with Python's asyncio library that 
 
 The application consists of two main components:
 
-1. **Server (`async_server.py`)**: Manages client connections, routes messages, and stores offline messages
+1. **Server (`async_server.py`)**: Manages client connections and routes messages.
 2. **Client (`async_client.py`)**: Connects to the server, sends and receives messages
+3. **Message_api (`message_api.py`)**: Connects to my fastapi and stores messages inside of my database using mongoDB
+## Message protocol
 
+Each message has a specific protocol:
+```
+class Message(BaseModel):
+    sender: str
+    destination: str
+    message: str
+    timestamp: str = datetime.utcnow().isoformat()
+```
+
+This is a straightforward protocol and allows me to easily replicate this type of message. Allows me to track the time that the message was sent and also allows me to know who sent the message to who (sender -> receive).
+
+We needed the sender, destination, message, and timestamp
 ## Requirements
 
-- Python 3.7+
+- Python 3.12.4
 - asyncio library (built into Python standard library)
 - pytest and pytest-asyncio (for running tests)
 
@@ -46,7 +60,16 @@ The application consists of two main components:
 
 ### Starting the Server
 
-Run the server to begin accepting connections:
+First get the fastapi and mongoDB up and running.
+
+make sure that the mongoDB (using community @7.0) and the message_api.py is running.
+
+Run the FastAPI server to begin storing messages server side:
+```bash
+python message_api.py
+```
+
+Then, run the server to begin accepting connections:
 
 ```bash
 python async_server.py
@@ -56,7 +79,7 @@ The server will start on localhost (127.0.0.1) port 5000.
 
 ### Connecting with a Client
 
-Run the client to connect to the server:
+Run as many clients to connect to the server. I used multiple different terminals with differnet usernames so that I can simulate communication between users. To connect, I simply ran this command in terminal to start each client:
 
 ```bash
 python async_client.py
@@ -76,6 +99,23 @@ For example, to send a message to user "alice":
 
 ```
 alice: Hello Alice, how are you?
+```
+
+If you send a message to another user not currently connected to the server, it should store that message in my database and send it to the desired user when he/she connects.
+
+For example, if you send a message to Joe using:
+```
+Joe: hello!!
+```
+
+It will say that
+```
+User 'Joe' is offline. Message saved.
+```
+
+Once Joe connects to the server, it will say that:
+```
+[Stored] [timestamp][sender] 'message_here'
 ```
 
 ### Commands
@@ -105,8 +145,8 @@ This project uses GitHub Actions for continuous integration. The workflow is def
 The server manages all connected clients and routes messages between them. Key features:
 
 - Tracks online users in the `clients` dictionary
-- Stores messages for offline users in the `pending_messages` dictionary
-- Delivers stored messages when users connect
+- Stores messages for offline users in a database using mongoDB
+- Delivers stored messages when users connect using a FASTAPI call from the database. This ensures that no data is being stored client side and that it is all handled server side.
 - Handles user connections/disconnections
 
 ### Client
@@ -124,10 +164,13 @@ async-chat-app/
 ├── async_server.py     # Server implementation
 ├── async_client.py     # Client implementation
 ├── test_chat_app.py    # Test suite
+├── message_api.py      # Handles the API calls and storing of messages in a database
+├── requirements.txt    # requirements
 ├── .github/            
 │   └── workflows/      # GitHub Actions CI configuration
 └── README.md           # This file
 ```
+Ignore the dummy_server_client (it is for the first part of testing the client/server without asyncio)
 
 ## Known Limitations
 
