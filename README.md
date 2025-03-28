@@ -12,54 +12,12 @@ A simple asynchronous chat application built with Python's asyncio library that 
 
 ## Components
 
-The application consists of two main components:
+The application consists of three main components:
 
 1. **Server (`async_server.py`)**: Manages client connections and routes messages.
 2. **Client (`async_client.py`)**: Connects to the server, sends and receives messages
 3. **Message_api (`message_api.py`)**: Connects to my fastapi and stores messages inside of my database using mongoDB
-## Message protocol
 
-Each message has a specific protocol:
-```
-class Message(BaseModel):
-    sender: str
-    destination: str
-    message: str
-    timestamp: str = datetime.utcnow().isoformat()
-    type: str = "chat"  # can be "chat", "command", "notification", or "subscription"
-    metadata: dict = {}  # optional metadata for special message types
-```
-
-This is a straightforward protocol and allows me to easily replicate this type of message. Allows me to track the time that the message was sent and also allows me to know who sent the message to who (sender -> receive).
-
-I also added a type: str = "chat" to determine if I want to add a different type of message or service in my code. For example, I added a subscription type that once you subscribe to the thermometer user, you will get broadcasted messages about the weather outside. 
-
-Simply run
-```
-python thermometer.py
-```
-to run the thermometer service
-
-To subscribe to the thermometer, run:
-```
-thermomter1: subscribe
-```
-This will broadcast the temperature outside (random values) every 100 seconds or so.
-
-To reboot the subscription, run:
-```
-thermometer1: reboot
-```
-This will reboot the subscription.
-
-To see the range of values from the subscription, run:
-```
-thermometer1: range
-```
-
-Each of these commands will give you a message in your "messages" after you run "!check".
-
-We needed the sender, destination, message, and timestamp to keep a structure for when users send messages to each other.
 
 ## Requirements
 
@@ -85,6 +43,8 @@ We needed the sender, destination, message, and timestamp to keep a structure fo
    ```bash
    pip install pytest pytest-asyncio
    ```
+
+4. Install all requirements inside of requirements.txt
 
 ## Usage
 
@@ -145,7 +105,11 @@ User 'Joe' is offline. Message saved.
 
 Once Joe connects to the server, it will say that:
 ```
-[Stored] [timestamp][sender] 'message_here'
+[Stored] [timestamp][sender] 'hello!'
+
+or
+
+[Stored] [timestamp][sender] 'your_message_here'
 ```
 
 To check for any messages from subscriptions or any messages from the database run:
@@ -158,21 +122,66 @@ This will give you all of the messages that you haven't seen you from the databa
 
 - `exit`: Disconnect from the server
 
+## Message protocol
+
+Each message has a specific protocol:
+```
+class Message(BaseModel):
+    sender: str
+    destination: str
+    message: str
+    timestamp: str = datetime.utcnow().isoformat()
+    type: str = "chat"  # can be "chat", "command", "notification", or "subscription"
+    metadata: dict = {}  # optional metadata for special message types
+```
+
+This is a straightforward protocol and allows me to easily replicate this type of message. Allows me to track the time that the message was sent and also allows me to know who sent the message to who (sender -> receive).
+
+I also added a type: str = "chat" to determine if I want to add a different type of message or service in my code. For example, I added a subscription type that once you subscribe to the thermometer user, you will get broadcasted messages about the weather outside. 
+
+Simply run
+```
+python thermometer.py
+```
+to run the thermometer service
+
+To subscribe to the thermometer, run:
+```
+thermomter1: subscribe
+```
+This will broadcast the temperature outside (random values) every 100 seconds or so.
+
+To reboot the subscription, run:
+```
+thermometer1: reboot
+```
+This will reboot the subscription.
+
+To see the range of values from the subscription, run:
+```
+thermometer1: range
+```
+
+To unsubscribe from the service thermometer, simply run:
+```
+thermometer1: unsubscribe
+```
+
+Each of these commands will give you a message in your "messages" after you run "!check".
+
+We needed the sender, destination, message, and timestamp to keep a structure for when users send messages to each other.
+
 ## Testing
 
 The application includes automated tests using pytest and pytest-asyncio. The tests verify functionality like message routing and offline message storage.
 
 ### Running Tests
 
-Run the tests with pytest:
+Run the tests with pytest to test simple cases:
 
 ```bash
 pytest test_chat_app.py -v
 ```
-
-### Continuous Integration
-
-This project uses GitHub Actions for continuous integration. The workflow is defined in `.github/workflows/` and automatically runs the test suite when changes are pushed to the repository.
 
 ## How It Works
 
@@ -184,6 +193,7 @@ The server manages all connected clients and routes messages between them. Key f
 - Stores messages for offline users in a database using mongoDB
 - Delivers stored messages when users connect using a FASTAPI call from the database. This ensures that no data is being stored client side and that it is all handled server side.
 - Handles user connections/disconnections
+- Allows subscription to dummy service called "thermometer.py" that periodically gives a random weather/temperature outside. Also allows the restart of service or even a list of the range of values that are used. 
 
 ### Client
 
@@ -202,8 +212,6 @@ async-chat-app/
 ├── test_chat_app.py    # Test suite
 ├── message_api.py      # Handles the API calls and storing of messages in a database
 ├── requirements.txt    # requirements
-├── .github/            
-│   └── workflows/      # GitHub Actions CI configuration
 └── README.md           # This file
 ```
 Ignore the dummy_server_client (it is for the first part of testing the client/server without asyncio)

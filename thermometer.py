@@ -57,11 +57,15 @@ async def handle_incoming(reader, writer):
                         "notification",
                         {"temps": temps, "time": datetime.now(UTC).isoformat()}
                     )
-
+                elif "unsubscribe" in command:
+                    print(f"[THERMOMETER] {sender} unsubscribed from thermometer")
+                    subscribers.discard(sender)
+                    await store_message(USERNAME, sender, "Unsubscribed.", "notification")
                 elif "subscribe" in command:
                     print(f"[THERMOMETER] {sender} subscribed to thermometer")
                     subscribers.add(sender)
                     await store_message(USERNAME, sender, "Subscription confirmed.", "notification")
+                
 
         except Exception as e:
             print(f"[THERMOMETER ERROR] {e}")
