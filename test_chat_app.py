@@ -5,6 +5,15 @@ from datetime import datetime, timezone
 from httpx import AsyncClient
 
 # Session-scoped event loop fixture to prevent premature closing.
+@pytest.fixture(autouse=True)
+def reset_server_state():
+    # Clear the clients dictionary before each test
+    clients.clear()
+    yield
+    # Optionally, clear it again after the test
+    clients.clear()
+
+
 @pytest.fixture(scope="session")
 def event_loop():
     loop = asyncio.new_event_loop()
