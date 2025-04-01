@@ -2,18 +2,9 @@
 import asyncio
 import pytest
 from datetime import datetime, timezone
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 
 # Session-scoped event loop fixture to prevent premature closing.
-@pytest.fixture(autouse=True)
-def reset_server_state():
-    # Clear the clients dictionary before each test
-    clients.clear()
-    yield
-    # Optionally, clear it again after the test
-    clients.clear()
-
-
 @pytest.fixture(scope="session")
 def event_loop():
     loop = asyncio.new_event_loop()
@@ -30,6 +21,15 @@ async def cleanup_db():
     yield
     await collection.delete_many({})
 
+# Fixture to reset the global state of the async server.
+from async_server import clients
+
+@pytest.fixture(autouse=True)
+def reset_server_state():
+    clients.clear()
+    yield
+    clients.clear()
+
 @pytest.mark.asyncio
 async def test_store_message():
     test_message = {
@@ -40,7 +40,9 @@ async def test_store_message():
         "type": "chat",
         "metadata": {}
     }
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    # Use ASGITransport to run FastAPI app in tests.
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post("/messages/", json=test_message)
         assert response.status_code == 200
         assert response.json() == {"status": "stored"}
@@ -56,7 +58,8 @@ async def test_get_messages():
         "type": "chat",
         "metadata": {}
     }
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         post_resp = await client.post("/messages/", json=test_message)
         assert post_resp.status_code == 200
 
@@ -64,6 +67,7 @@ async def test_get_messages():
         get_resp = await client.get("/messages/bob")
         data = get_resp.json()
         assert "messages" in data
+        # Expect one message stored
         assert len(data["messages"]) == 2
         retrieved_msg = data["messages"][0]
         assert retrieved_msg["sender"] == "alice"
@@ -75,7 +79,7 @@ async def test_get_messages():
         assert data2["messages"] == []
 
 # ----- Tests for async_server.py -----
-from async_server import main as server_main, clients
+from async_server import main as server_main
 
 @pytest.fixture
 async def fake_storage(monkeypatch):
