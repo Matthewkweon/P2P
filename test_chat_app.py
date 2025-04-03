@@ -4,32 +4,63 @@ import pytest
 from datetime import datetime, timezone
 from httpx import AsyncClient, ASGITransport
 
-# Session-scoped event loop fixture to prevent premature closing.
+# ----------------------
+# Event Loop Fixture
+# ----------------------
 @pytest.fixture(scope="session")
 def event_loop():
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
 
-# ----- Tests for message_api.py -----
-from message_api import app, collection
+
+# ----------------------
+# Fake Database for message_api
+# ----------------------
+import message_api
+
+class FakeCollection:
+    def __init__(self):
+        self.data = []
+
+    async def insert_one(self, document):
+        self.data.append(document)
+        class FakeInsertOneResult:
+            inserted_id = "fake_id"
+        return FakeInsertOneResult()
+
+    def find(self, query):
+        dest = query.get("destination")
+        return FakeCursor([doc for doc in self.data if doc.get("destination") == dest])
+
+    async def delete_many(self, query):
+        if query:
+            dest = query.get("destination")
+            if dest is None:
+                self.data = []
+            else:
+                self.data = [doc for doc in self.data if doc.get("destination") != dest]
+        else:
+            self.data = []
+        return None
+
+class FakeCursor:
+    def __init__(self, docs):
+        self.docs = docs
+
+    async def to_list(self, length=None):
+        return self.docs
 
 @pytest.fixture(autouse=True)
-async def cleanup_db():
-    # Clear the collection before and after each test.
-    await collection.delete_many({})
-    yield
-    await collection.delete_many({})
+async def fake_db(monkeypatch):
+    fake_collection = FakeCollection()
+    monkeypatch.setattr(message_api, "collection", fake_collection)
+    yield fake_collection
 
-# Fixture to reset the global state of the async server.
-from async_server import clients
 
-@pytest.fixture(autouse=True)
-def reset_server_state():
-    clients.clear()
-    yield
-    clients.clear()
-
+# ----------------------
+# FastAPI Endpoint Tests
+# ----------------------
 @pytest.mark.asyncio
 async def test_store_message():
     test_message = {
@@ -40,8 +71,7 @@ async def test_store_message():
         "type": "chat",
         "metadata": {}
     }
-    # Use ASGITransport to run FastAPI app in tests.
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=message_api.app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post("/messages/", json=test_message)
         assert response.status_code == 200
@@ -49,7 +79,6 @@ async def test_store_message():
 
 @pytest.mark.asyncio
 async def test_get_messages():
-    # First, store a message.
     test_message = {
         "sender": "alice",
         "destination": "bob",
@@ -58,31 +87,60 @@ async def test_get_messages():
         "type": "chat",
         "metadata": {}
     }
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=message_api.app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         post_resp = await client.post("/messages/", json=test_message)
         assert post_resp.status_code == 200
 
-        # Retrieve stored messages for "bob"
         get_resp = await client.get("/messages/bob")
         data = get_resp.json()
         assert "messages" in data
-        # Expect one message stored
-        assert len(data["messages"]) == 2
+        # Expect one stored message.
+        assert len(data["messages"]) == 1
         retrieved_msg = data["messages"][0]
         assert retrieved_msg["sender"] == "alice"
         assert "Hello Bob!" in retrieved_msg["message"]
 
-        # A subsequent retrieval should return an empty list (messages are deleted after retrieval)
+        # Subsequent retrieval should return an empty list.
         get_resp2 = await client.get("/messages/bob")
         data2 = get_resp2.json()
         assert data2["messages"] == []
 
-# ----- Tests for async_server.py -----
-from async_server import main as server_main
 
+# ----------------------
+# Async Server Tests
+# ----------------------
+import async_server
+
+# Fixture to reset global state.
 @pytest.fixture
-async def fake_storage(monkeypatch):
+def reset_server_state():
+    async_server.clients.clear()
+    yield
+    async_server.clients.clear()
+
+
+# Updated run_server fixture that yields a tuple (server, server_task).
+@pytest.fixture
+async def run_server():
+    server = await asyncio.start_server(
+        async_server.handle_client, async_server.HOST, async_server.PORT
+    )
+    server_task = asyncio.create_task(server.serve_forever())
+    yield (server, server_task)
+    # Teardown: close the server and cancel the serve_forever task.
+    server.close()
+    await server.wait_closed()
+    server_task.cancel()
+    try:
+        await server_task
+    except asyncio.CancelledError:
+        pass
+
+
+# Override the storage functions so the server does not perform real HTTP calls.
+@pytest.fixture
+def fake_storage(monkeypatch):
     storage = {}
 
     async def fake_store_message(sender, destination, message):
@@ -93,19 +151,18 @@ async def fake_storage(monkeypatch):
         storage[username] = []
         return [f"[CHAT][dummy-timestamp][{username}] {msg}" for msg in msgs]
 
-    monkeypatch.setattr("async_server.store_message", fake_store_message)
-    monkeypatch.setattr("async_server.get_stored_messages", fake_get_stored_messages)
-    yield storage
-    storage.clear()
+    monkeypatch.setattr(async_server, "store_message", fake_store_message)
+    monkeypatch.setattr(async_server, "get_stored_messages", fake_get_stored_messages)
+    return storage
+
 
 @pytest.mark.asyncio
-async def test_chat_server_offline_message(fake_storage):
-    # Start the server in a background task.
-    server_task = asyncio.create_task(server_main())
-    await asyncio.sleep(0.1)
+async def test_chat_server_offline_message(run_server, fake_storage, reset_server_state):
+    # Get the (server, task) tuple directly from the fixture.
+    server, _ = run_server
 
-    # --- Client 1 (Alice) connects and sends a message to offline user Bob ---
-    reader1, writer1 = await asyncio.open_connection('127.0.0.1', 5000)
+    # --- Client 1 (Alice) connects and sends a message to offline Bob ---
+    reader1, writer1 = await asyncio.open_connection(async_server.HOST, async_server.PORT)
     data = await reader1.read(1024)
     assert "Enter your username:" in data.decode()
 
@@ -116,8 +173,11 @@ async def test_chat_server_offline_message(fake_storage):
 
     writer1.write(b"bob: Hello Bob!\n")
     await writer1.drain()
+    # Give the server a brief moment to process and send a response.
+    await asyncio.sleep(0.1)
     data = await reader1.read(1024)
-    assert "User 'bob' is offline" in data.decode()
+    output = data.decode()
+    assert "User 'bob' is offline" in output
 
     writer1.write(b"exit")
     await writer1.drain()
@@ -125,7 +185,7 @@ async def test_chat_server_offline_message(fake_storage):
     await writer1.wait_closed()
 
     # --- Client 2 (Bob) connects and checks for stored messages ---
-    reader2, writer2 = await asyncio.open_connection('127.0.0.1', 5000)
+    reader2, writer2 = await asyncio.open_connection(async_server.HOST, async_server.PORT)
     data = await reader2.read(1024)
     assert "Enter your username:" in data.decode()
 
@@ -136,6 +196,7 @@ async def test_chat_server_offline_message(fake_storage):
 
     writer2.write(b"!check\n")
     await writer2.drain()
+    await asyncio.sleep(0.1)
     data = await reader2.read(1024)
     decoded = data.decode()
     assert "Hello Bob!" in decoded
@@ -145,28 +206,23 @@ async def test_chat_server_offline_message(fake_storage):
     writer2.close()
     await writer2.wait_closed()
 
-    server_task.cancel()
-    try:
-        await server_task
-    except asyncio.CancelledError:
-        pass
 
 @pytest.mark.asyncio
-async def test_chat_server_online_message(monkeypatch):
+async def test_chat_server_online_message(run_server, monkeypatch, reset_server_state):
     async def dummy_store_message(sender, destination, message):
         pass
 
     async def dummy_get_stored_messages(username):
         return []
 
-    monkeypatch.setattr("async_server.store_message", dummy_store_message)
-    monkeypatch.setattr("async_server.get_stored_messages", dummy_get_stored_messages)
+    monkeypatch.setattr(async_server, "store_message", dummy_store_message)
+    monkeypatch.setattr(async_server, "get_stored_messages", dummy_get_stored_messages)
 
-    server_task = asyncio.create_task(server_main())
-    await asyncio.sleep(0.1)
+    # Get the (server, task) tuple directly from the fixture.
+    server, _ = run_server
 
     # --- Client 1 (Alice) connects ---
-    reader1, writer1 = await asyncio.open_connection('127.0.0.1', 5000)
+    reader1, writer1 = await asyncio.open_connection(async_server.HOST, async_server.PORT)
     data = await reader1.read(1024)
     assert "Enter your username:" in data.decode()
     writer1.write(b"alice\n")
@@ -175,7 +231,7 @@ async def test_chat_server_online_message(monkeypatch):
     assert "Connected! Users online:" in data.decode()
 
     # --- Client 2 (Bob) connects ---
-    reader2, writer2 = await asyncio.open_connection('127.0.0.1', 5000)
+    reader2, writer2 = await asyncio.open_connection(async_server.HOST, async_server.PORT)
     data = await reader2.read(1024)
     assert "Enter your username:" in data.decode()
     writer2.write(b"bob\n")
@@ -185,7 +241,7 @@ async def test_chat_server_online_message(monkeypatch):
 
     writer1.write(b"bob: Hello Bob!\n")
     await writer1.drain()
-
+    await asyncio.sleep(0.1)
     data = await reader2.read(1024)
     decoded = data.decode()
     assert "alice" in decoded and "Hello Bob!" in decoded
@@ -199,9 +255,3 @@ async def test_chat_server_online_message(monkeypatch):
     await writer2.drain()
     writer2.close()
     await writer2.wait_closed()
-
-    server_task.cancel()
-    try:
-        await server_task
-    except asyncio.CancelledError:
-        pass
