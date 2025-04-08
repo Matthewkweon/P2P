@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+setup.py
+src/p2p_chat/__init__.py
+src/p2p_chat/client.py
+src/p2p_chat/message_api.py
+src/p2p_chat/server.py
+src/p2p_chat.egg-info/PKG-INFO
+src/p2p_chat.egg-info/SOURCES.txt
+src/p2p_chat.egg-info/dependency_links.txt
+src/p2p_chat.egg-info/entry_points.txt
+src/p2p_chat.egg-info/requires.txt
+src/p2p_chat.egg-info/top_level.txt
+src/p2p_chat/services/__init__.py
+src/p2p_chat/services/thermometer.py

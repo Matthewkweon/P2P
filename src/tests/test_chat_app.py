@@ -17,7 +17,7 @@ def event_loop():
 # ----------------------
 # Fake Database for message_api
 # ----------------------
-import message_api
+import src.p2p_chat.message_api as message_api
 
 class FakeCollection:
     def __init__(self):
@@ -110,21 +110,21 @@ async def test_get_messages():
 # ----------------------
 # Async Server Tests
 # ----------------------
-import async_server
+import src.p2p_chat.server as server
 
 # Fixture to reset global state.
 @pytest.fixture
 def reset_server_state():
-    async_server.clients.clear()
+    server.clients.clear()
     yield
-    async_server.clients.clear()
+    server.clients.clear()
 
 
 # Updated run_server fixture that yields a tuple (server, server_task).
 @pytest.fixture
 async def run_server():
     server = await asyncio.start_server(
-        async_server.handle_client, async_server.HOST, async_server.PORT
+        server.handle_client, server.HOST, server.PORT
     )
     server_task = asyncio.create_task(server.serve_forever())
     yield (server, server_task)
@@ -151,8 +151,8 @@ def fake_storage(monkeypatch):
         storage[username] = []
         return [f"[CHAT][dummy-timestamp][{username}] {msg}" for msg in msgs]
 
-    monkeypatch.setattr(async_server, "store_message", fake_store_message)
-    monkeypatch.setattr(async_server, "get_stored_messages", fake_get_stored_messages)
+    monkeypatch.setattr(server, "store_message", fake_store_message)
+    monkeypatch.setattr(server, "get_stored_messages", fake_get_stored_messages)
     return storage
 
 
@@ -162,7 +162,7 @@ async def test_chat_server_offline_message(run_server, fake_storage, reset_serve
     server, _ = run_server
 
     # --- Client 1 (Alice) connects and sends a message to offline Bob ---
-    reader1, writer1 = await asyncio.open_connection(async_server.HOST, async_server.PORT)
+    reader1, writer1 = await asyncio.open_connection(server.HOST, server.PORT)
     data = await reader1.read(1024)
     assert "Enter your username:" in data.decode()
 
@@ -185,7 +185,7 @@ async def test_chat_server_offline_message(run_server, fake_storage, reset_serve
     await writer1.wait_closed()
 
     # --- Client 2 (Bob) connects and checks for stored messages ---
-    reader2, writer2 = await asyncio.open_connection(async_server.HOST, async_server.PORT)
+    reader2, writer2 = await asyncio.open_connection(server.HOST, server.PORT)
     data = await reader2.read(1024)
     assert "Enter your username:" in data.decode()
 
@@ -215,14 +215,14 @@ async def test_chat_server_online_message(run_server, monkeypatch, reset_server_
     async def dummy_get_stored_messages(username):
         return []
 
-    monkeypatch.setattr(async_server, "store_message", dummy_store_message)
-    monkeypatch.setattr(async_server, "get_stored_messages", dummy_get_stored_messages)
+    monkeypatch.setattr(server, "store_message", dummy_store_message)
+    monkeypatch.setattr(server, "get_stored_messages", dummy_get_stored_messages)
 
     # Get the (server, task) tuple directly from the fixture.
     server, _ = run_server
 
     # --- Client 1 (Alice) connects ---
-    reader1, writer1 = await asyncio.open_connection(async_server.HOST, async_server.PORT)
+    reader1, writer1 = await asyncio.open_connection(server.HOST, server.PORT)
     data = await reader1.read(1024)
     assert "Enter your username:" in data.decode()
     writer1.write(b"alice\n")
@@ -231,7 +231,7 @@ async def test_chat_server_online_message(run_server, monkeypatch, reset_server_
     assert "Connected! Users online:" in data.decode()
 
     # --- Client 2 (Bob) connects ---
-    reader2, writer2 = await asyncio.open_connection(async_server.HOST, async_server.PORT)
+    reader2, writer2 = await asyncio.open_connection(server.HOST, server.PORT)
     data = await reader2.read(1024)
     assert "Enter your username:" in data.decode()
     writer2.write(b"bob\n")

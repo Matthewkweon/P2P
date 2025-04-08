@@ -1,0 +1,6 @@
+asyncio
+httpx
+fastapi
+uvicorn
+motor
+python-dotenv
