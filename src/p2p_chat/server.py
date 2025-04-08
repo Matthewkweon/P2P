@@ -1,14 +1,13 @@
 import asyncio
-import httpx  
-from datetime import datetime, timezone, UTC
+import httpx
+import argparse
+from datetime import datetime, UTC
 
+DEFAULT_HOST = '127.0.0.1'  # Localhost
+DEFAULT_PORT = 5000  # Server Port
+DEFAULT_API_BASE = 'http://127.0.0.1:8000'  # FastAPI address
 
-
-HOST = '127.0.0.1'  # Localhost
-PORT = 5000  # Server Port
 clients = {}  # username -> (reader, writer)
-API_BASE = 'http://127.0.0.1:8000'  # FastAPI address
-
 
 async def send_message(writer, message):
     try:
@@ -17,9 +16,9 @@ async def send_message(writer, message):
     except:
         pass  # Ignore write errors
 
-async def store_message(sender, destination, message):
+async def store_message(sender, destination, message, api_base=DEFAULT_API_BASE):
     async with httpx.AsyncClient() as client:
-        await client.post(f"{API_BASE}/messages/", json={
+        await client.post(f"{api_base}/messages/", json={
             "sender": sender,
             "destination": destination,
             "message": message,
@@ -28,17 +27,16 @@ async def store_message(sender, destination, message):
             "metadata": {}
         })
 
-
-async def get_stored_messages(username):
+async def get_stored_messages(username, api_base=DEFAULT_API_BASE):
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"{API_BASE}/messages/{username}")
+        response = await client.get(f"{api_base}/messages/{username}")
         messages = response.json().get("messages", [])
         return [
-            f"[{msg['type'].upper()}][{msg['timestamp']}][{msg['sender']}] {msg['message']} {f'Metadata: {msg["metadata"]}' if msg.get('metadata') else ''}"
+            f"[{msg['type'].upper()}][{msg['timestamp']}][{msg['sender']}] {msg['message']} {f'Metadata: {msg['metadata']}' if msg.get('metadata') else ''}"
             for msg in messages
         ]
 
-async def handle_client(reader, writer):
+async def handle_client(reader, writer, api_base=DEFAULT_API_BASE):
     writer.write("Enter your username: ".encode())
     await writer.drain()
     username = (await reader.read(1024)).decode().strip()
@@ -55,8 +53,8 @@ async def handle_client(reader, writer):
 
     await send_message(writer, f"Connected! Users online: {', '.join(clients.keys())}\n")
 
-    # 🔄 Retrieve stored messages
-    stored_msgs = await get_stored_messages(username)
+    # Retrieve stored messages
+    stored_msgs = await get_stored_messages(username, api_base)
     for msg in stored_msgs:
         await send_message(writer, f"[Stored] {msg}\n")
 
@@ -70,7 +68,7 @@ async def handle_client(reader, writer):
             if message.lower() == "exit":
                 break
             elif message.lower() == "!check":
-                stored_msgs = await get_stored_messages(username)
+                stored_msgs = await get_stored_messages(username, api_base)
                 for msg in stored_msgs:
                     await send_message(writer, f"[Stored] {msg}\n")
                 continue
@@ -86,7 +84,7 @@ async def handle_client(reader, writer):
                     _, target_writer = clients[target_user]
                     await send_message(target_writer, f"[{username}][{timestamp}] {msg_content}\n")
                 else:
-                    await store_message(username, target_user, msg_content)
+                    await store_message(username, target_user, msg_content, api_base)
                     await send_message(writer, f"User '{target_user}' is offline. Message saved.\n")
             else:
                 await send_message(writer, "Invalid format. Use: TO_USERNAME: MESSAGE\n")
@@ -98,13 +96,33 @@ async def handle_client(reader, writer):
     writer.close()
     await writer.wait_closed()
 
-
-async def main():
-    server = await asyncio.start_server(handle_client, HOST, PORT)
+async def run_server(host=DEFAULT_HOST, port=DEFAULT_PORT, api_base=DEFAULT_API_BASE):
+    """Starts the chat server."""
+    server = await asyncio.start_server(
+        lambda r, w: handle_client(r, w, api_base), 
+        host, 
+        port
+    )
     addr = server.sockets[0].getsockname()
     print(f"Server running on {addr}")
+    print(f"Using API at {api_base}")
+    
     async with server:
         await server.serve_forever()
 
+def main(host=DEFAULT_HOST, port=DEFAULT_PORT, api_base=DEFAULT_API_BASE):
+    """Main function to run the server."""
+    asyncio.run(run_server(host, port, api_base))
+
+def main_entry():
+    """Entry point for console script."""
+    parser = argparse.ArgumentParser(description='P2P Chat Server')
+    parser.add_argument('--host', default=DEFAULT_HOST, help='Server host')
+    parser.add_argument('--port', type=int, default=DEFAULT_PORT, help='Server port')
+    parser.add_argument('--api-base', default=DEFAULT_API_BASE, help='API base URL')
+    args = parser.parse_args()
+    
+    main(args.host, args.port, args.api_base)
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main_entry()
