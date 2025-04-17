@@ -5,6 +5,8 @@ src/p2p_chat/__init__.py
 src/p2p_chat/client.py
 src/p2p_chat/message_api.py
 src/p2p_chat/server.py
+src/p2p_chat/web_server.py
+src/p2p_chat/websocket_bridge.py
 src/p2p_chat.egg-info/PKG-INFO
 src/p2p_chat.egg-info/SOURCES.txt
 src/p2p_chat.egg-info/dependency_links.txt

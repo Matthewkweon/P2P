@@ -1,0 +1,6 @@
+2025-04-17 18:29:22,538 - p2p_chat.websocket_bridge - INFO - Starting WebSocket bridge on 0.0.0.0:5001
+2025-04-17 18:29:22,539 - p2p_chat.websocket_bridge - INFO - Connecting to TCP server at 127.0.0.1:5000
+INFO:     Started server process [13752]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)

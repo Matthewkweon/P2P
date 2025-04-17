@@ -4,3 +4,4 @@ fastapi
 uvicorn
 motor
 python-dotenv
+websockets

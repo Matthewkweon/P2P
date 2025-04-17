@@ -1,0 +1,386 @@
+<!-- src/p2p_chat/frontend/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P2P Chat</title>
+  <link rel="stylesheet" href="App.css">
+  <style>
+    .error-message {
+      color: #e74c3c;
+      background-color: #fadbd8;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      text-align: left;
+    }
+    
+    .connection-status {
+      padding: 5px 10px;
+      border-radius: 4px;
+      margin-left: 10px;
+      font-size: 0.8rem;
+    }
+    
+    .status-connecting {
+      background-color: #f39c12;
+      color: white;
+    }
+    
+    .status-connected {
+      background-color: #2ecc71;
+      color: white;
+    }
+    
+    .status-error {
+      background-color: #e74c3c;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <!-- Load React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  
+  <!-- Load Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Your React Component -->
+  <script type="text/babel">
+    // Get WebSocket port from URL parameters or use default
+    const urlParams = new URLSearchParams(window.location.search);
+    const wsPort = urlParams.get('wsport') || '5051';
+    const wsHost = urlParams.get('wshost') || window.location.hostname;
+
+    const App = () => {
+      const [username, setUsername] = React.useState('');
+      const [isConnected, setIsConnected] = React.useState(false);
+      const [isConnecting, setIsConnecting] = React.useState(false);
+      const [connectionError, setConnectionError] = React.useState('');
+      const [messages, setMessages] = React.useState([]);
+      const [inputMessage, setInputMessage] = React.useState('');
+      const [recipientInput, setRecipientInput] = React.useState('');
+      const [onlineUsers, setOnlineUsers] = React.useState([]);
+      const [storedMessages, setStoredMessages] = React.useState([]);
+      const [wsClient, setWsClient] = React.useState(null);
+      
+      const messagesEndRef = React.useRef(null);
+      const reconnectTimeoutRef = React.useRef(null);
+
+      // Connect to WebSocket server
+      const connectToServer = () => {
+        if (!username) {
+          setConnectionError('Please enter a username to connect');
+          return;
+        }
+        
+        setIsConnecting(true);
+        setConnectionError('');
+        
+        // Clear any previous reconnect attempts
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
+        
+        // Create WebSocket connection with dynamic host and port
+        const wsUrl = `ws://${wsHost}:${wsPort}/ws/${username}`;
+        console.log(`Connecting to WebSocket server at ${wsUrl}`);
+        
+        try {
+          const ws = new WebSocket(wsUrl);
+          
+          ws.onopen = () => {
+            console.log('Connected to server');
+            setIsConnected(true);
+            setIsConnecting(false);
+            setConnectionError('');
+            setWsClient(ws);
+          };
+          
+          ws.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              
+              if (data.type === 'users_update') {
+                setOnlineUsers(data.users);
+              } 
+              else if (data.type === 'stored_messages') {
+                setStoredMessages(data.messages);
+              }
+              else if (data.type === 'chat') {
+                setMessages(prev => [...prev, {
+                  sender: data.sender,
+                  message: data.message,
+                  timestamp: data.timestamp
+                }]);
+              }
+              else if (data.type === 'notification') {
+                setMessages(prev => [...prev, {
+                  sender: 'System',
+                  message: `${data.message} ${data.metadata ? JSON.stringify(data.metadata) : ''}`,
+                  timestamp: data.timestamp
+                }]);
+              }
+            } catch (err) {
+              console.error('Error parsing message:', err);
+            }
+          };
+          
+          ws.onclose = (event) => {
+            console.log('Disconnected from server:', event);
+            setIsConnected(false);
+            setIsConnecting(false);
+            setWsClient(null);
+            
+            if (!event.wasClean) {
+              setConnectionError('Connection closed unexpectedly. The server might be down.');
+            }
+          };
+          
+          ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            setIsConnecting(false);
+            setConnectionError('Failed to connect to the WebSocket server. Please ensure the WebSocket bridge is running.');
+          };
+        } catch (err) {
+          console.error('Error creating WebSocket:', err);
+          setIsConnecting(false);
+          setConnectionError(`Error creating WebSocket: ${err.message}`);
+        }
+      };
+      
+      // Handle sending messages
+      const sendMessage = () => {
+        if (!isConnected || !inputMessage || !recipientInput) return;
+        
+        const message = {
+          sender: username,
+          destination: recipientInput,
+          message: inputMessage,
+          type: 'chat'
+        };
+        
+        try {
+          wsClient.send(JSON.stringify(message));
+          
+          // Add message to local display
+          setMessages(prev => [...prev, {
+            sender: `You (to ${recipientInput})`,
+            message: inputMessage,
+            timestamp: new Date().toISOString()
+          }]);
+          
+          // Clear input field
+          setInputMessage('');
+        } catch (err) {
+          console.error('Error sending message:', err);
+          setConnectionError(`Error sending message: ${err.message}`);
+        }
+      };
+      
+      // Check for stored messages
+      const checkStoredMessages = () => {
+        if (!isConnected) return;
+        
+        const command = {
+          type: 'command',
+          command: '!check'
+        };
+        
+        try {
+          wsClient.send(JSON.stringify(command));
+        } catch (err) {
+          console.error('Error checking messages:', err);
+          setConnectionError(`Error checking messages: ${err.message}`);
+        }
+      };
+      
+      // Handle disconnect
+      const disconnect = () => {
+        if (wsClient) {
+          try {
+            wsClient.close(1000, "User disconnected");
+          } catch (err) {
+            console.error('Error disconnecting:', err);
+          }
+        }
+      };
+      
+      // Subscribe to thermometer
+      const subscribeToThermometer = () => {
+        if (!isConnected) return;
+        
+        const command = {
+          sender: username,
+          destination: 'thermometer1',
+          message: 'subscribe',
+          type: 'chat'
+        };
+        
+        try {
+          wsClient.send(JSON.stringify(command));
+        } catch (err) {
+          console.error('Error subscribing to thermometer:', err);
+          setConnectionError(`Error subscribing to thermometer: ${err.message}`);
+        }
+      };
+      
+      // Auto-scroll to bottom of message list
+      React.useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, [messages, storedMessages]);
+      
+      // Status text based on connection state
+      const connectionStatusText = () => {
+        if (isConnecting) return "Connecting...";
+        if (isConnected) return "Connected";
+        return connectionError ? "Connection Error" : "Disconnected";
+      };
+      
+      // Status class based on connection state
+      const connectionStatusClass = () => {
+        if (isConnecting) return "status-connecting";
+        if (isConnected) return "status-connected";
+        return connectionError ? "status-error" : "";
+      };
+      
+      return (
+        <div className="app">
+          <header className="header">
+            <h1>P2P Chat</h1>
+            {(isConnected || isConnecting || connectionError) && (
+              <span className={`connection-status ${connectionStatusClass()}`}>
+                {connectionStatusText()}
+              </span>
+            )}
+          </header>
+          
+          <main className="main">
+            {!isConnected ? (
+              <div className="login-container">
+                <h2>Connect to Chat</h2>
+                <input
+                  type="text"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  disabled={isConnecting}
+                />
+                <button 
+                  onClick={connectToServer}
+                  disabled={isConnecting || !username}
+                >
+                  {isConnecting ? 'Connecting...' : 'Connect'}
+                </button>
+                
+                {connectionError && (
+                  <div className="error-message">
+                    <p><strong>Error:</strong> {connectionError}</p>
+                    <p>WebSocket URL: ws://{wsHost}:{wsPort}/ws/{username}</p>
+                    <p>Make sure the WebSocket bridge is running:</p>
+                    <pre>p2p-chat-websocket --ws-port {wsPort} --tcp-port 5050</pre>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="chat-container">
+                <div className="sidebar">
+                  <div className="online-users">
+                    <h3>Online Users</h3>
+                    <ul>
+                      {onlineUsers.length === 0 ? (
+                        <li className="no-users">No users online</li>
+                      ) : (
+                        onlineUsers.map((user, index) => (
+                          <li key={index} onClick={() => setRecipientInput(user)}>
+                            {user}
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  </div>
+                  <div className="actions">
+                    <button onClick={checkStoredMessages}>Check Messages</button>
+                    <button onClick={subscribeToThermometer}>Subscribe to Thermometer</button>
+                    <button onClick={disconnect}>Disconnect</button>
+                  </div>
+                </div>
+                
+                <div className="message-area">
+                  <div className="message-list">
+                    {messages.length === 0 ? (
+                      <div className="no-messages">No messages yet</div>
+                    ) : (
+                      messages.map((msg, index) => (
+                        <div key={index} className="message">
+                          <div className="message-header">
+                            <span className="sender">{msg.sender}</span>
+                            <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                          </div>
+                          <div className="message-body">{msg.message}</div>
+                        </div>
+                      ))
+                    )}
+                    
+                    {storedMessages.length > 0 && (
+                      <div className="stored-messages">
+                        <h4>Stored Messages</h4>
+                        {storedMessages.map((msg, index) => (
+                          <div key={`stored-${index}`} className="message stored">
+                            <div className="message-header">
+                              <span className="sender">{msg.sender}</span>
+                              <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                            </div>
+                            <div className="message-body">{msg.message}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                  
+                  <div className="message-input">
+                    <input
+                      type="text"
+                      placeholder="Recipient"
+                      value={recipientInput}
+                      onChange={(e) => setRecipientInput(e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Type your message..."
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    />
+                    <button 
+                      onClick={sendMessage}
+                      disabled={!inputMessage || !recipientInput}
+                    >
+                      Send
+                    </button>
+                  </div>
+                  
+                  {connectionError && (
+                    <div className="error-message">
+                      {connectionError}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    };
+
+    // Render the App
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

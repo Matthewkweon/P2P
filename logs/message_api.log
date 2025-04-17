@@ -1,0 +1,12 @@
+INFO:     Started server process [13744]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:64592 - "GET /messages/bob HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64629 - "POST /messages/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64669 - "GET /messages/mike HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64835 - "POST /messages/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64840 - "POST /messages/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49164 - "GET /messages/pop HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49181 - "POST /messages/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49214 - "GET /messages/bob HTTP/1.1" 200 OK
