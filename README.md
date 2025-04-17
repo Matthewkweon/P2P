@@ -223,10 +223,7 @@ Ignore the dummy_server_client (it is for the first part of testing the client/s
 - No persistence (messages are lost if the server restarts)
 - No group messaging functionality
 
-## Future Improvements
-
-- Add message encryption for privacy
-- Implement user authentication
-- Add persistent storage for messages
-- Support for group chats and channels
-- Add a graphical user interface
+## Things to add in the future:
+- Add a password for privacy and user authentication
+- support group chats
+- add a graphical user interface
