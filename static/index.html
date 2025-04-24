@@ -1,567 +1,604 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P Chat</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background-color: #f5f5f5;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            width: 100%;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .login-container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            max-width: 500px;
-            margin: auto;
-        }
-        .chat-container {
-            display: none;
-            flex-direction: column;
-            height: 100%;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        .chat-header {
-            padding: 15px 20px;
-            background-color: #4a6fa5;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .online-users {
-            font-size: 0.9em;
-            color: #e0e0e0;
-        }
-        .chat-messages {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .message {
-            padding: 10px 15px;
-            border-radius: 18px;
-            max-width: 75%;
-            word-break: break-word;
-        }
-        .message.incoming {
-            background-color: #e9eef8;
-            align-self: flex-start;
-        }
-        .message.outgoing {
-            background-color: #d5e8d4;
-            align-self: flex-end;
-        }
-        .message.system {
-            background-color: #f5f5f5;
-            align-self: center;
-            text-align: center;
-            font-style: italic;
-            color: #666;
-        }
-        .message.stored {
-            background-color: #fff8e1;
-            align-self: flex-start;
-            border-left: 3px solid #ffc107;
-        }
-        .message-sender {
-            font-weight: bold;
-            margin-bottom: 3px;
-        }
-        .message-time {
-            font-size: 0.7em;
-            color: #888;
-            text-align: right;
-            margin-top: 3px;
-        }
-        .chat-input {
-            display: flex;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-top: 1px solid #eee;
-            gap: 10px;
-        }
-        input, button {
-            padding: 12px 15px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            outline: none;
-            font-size: 16px;
-        }
-        input {
-            flex-grow: 1;
-        }
-        input:focus {
-            border-color: #4a6fa5;
-        }
-        button {
-            background-color: #4a6fa5;
-            color: white;
-            cursor: pointer;
-            border: none;
-            min-width: 100px;
-            transition: background-color 0.2s;
-        }
-        button:hover {
-            background-color: #3a5982;
-        }
-        .commands {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        .command-btn {
-            background-color: #e9eef8;
-            color: #4a6fa5;
-            border: 1px solid #4a6fa5;
-        }
-        .command-btn:hover {
-            background-color: #d5e0f2;
-        }
-        .notification {
-            background-color: #e8f5e9;
-            border-left: 3px solid #4caf50;
-        }
-        #recipient-input {
-            width: 120px;
-            margin-right: 10px;
-        }
-        .recipient-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            color: #666;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2P Chat</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+        background-color: #f5f5f5;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        width: 100%;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .login-container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        margin: auto;
+    }
+    .chat-container {
+        display: none;
+        flex-direction: column;
+        height: 100%;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    .chat-header {
+        padding: 15px 20px;
+        background-color: #4a6fa5;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .online-users {
+        font-size: 0.9em;
+        color: #e0e0e0;
+    }
+    .chat-messages {
+        flex-grow: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .message {
+        padding: 10px 15px;
+        border-radius: 18px;
+        max-width: 75%;
+        word-break: break-word;
+    }
+    .message.incoming {
+        background-color: #e9eef8;
+        align-self: flex-start;
+    }
+    .message.outgoing {
+        background-color: #d5e8d4;
+        align-self: flex-end;
+    }
+    .message.system {
+        background-color: #f5f5f5;
+        align-self: center;
+        text-align: center;
+        font-style: italic;
+        color: #666;
+    }
+    .message.stored {
+        background-color: #fff8e1;
+        align-self: flex-start;
+        border-left: 3px solid #ffc107;
+    }
+    .message-sender {
+        font-weight: bold;
+        margin-bottom: 3px;
+    }
+    .message-time {
+        font-size: 0.7em;
+        color: #888;
+        text-align: right;
+        margin-top: 3px;
+    }
+    .chat-input {
+        display: flex;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border-top: 1px solid #eee;
+        gap: 10px;
+    }
+    input, button {
+        padding: 12px 15px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        outline: none;
+        font-size: 16px;
+    }
+    input {
+        flex-grow: 1;
+    }
+    input:focus {
+        border-color: #4a6fa5;
+    }
+    button {
+        background-color: #4a6fa5;
+        color: white;
+        cursor: pointer;
+        border: none;
+        min-width: 100px;
+        transition: background-color 0.2s;
+    }
+    button:hover {
+        background-color: #3a5982;
+    }
+    .commands {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .command-btn {
+        background-color: #e9eef8;
+        color: #4a6fa5;
+        border: 1px solid #4a6fa5;
+    }
+    .command-btn:hover {
+        background-color: #d5e0f2;
+    }
+    .notification {
+        background-color: #e8f5e9;
+        border-left: 3px solid #4caf50;
+    }
+    #recipient-input {
+        width: 120px;
+        margin-right: 10px;
+    }
+    .recipient-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        color: #666;
+    }
+    .bot-cmd-btn {
+        background-color: #f0f7ff;
+        color: #4a6fa5;
+        border: 1px solid #4a6fa5;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+    .bot-cmd-btn:hover {
+        background-color: #d5e0f2;
+    }
+    .bot-message {
+        background-color: #e6f4ff;
+        border-left: 3px solid #2196f3;
+    }
+    .bot-message.happy {
+        background-color: #e8f5e9;
+        border-left: 3px solid #4caf50;
+    }
+    .bot-message.angry {
+        background-color: #ffebee;
+        border-left: 3px solid #f44336;
+    }
+    .bot-message.spanish {
+        background-color: #fff8e1;
+        border-left: 3px solid #ffc107;
+    }
+</style>
 </head>
 <body>
-    <div class="container">
-        <!-- Login Form -->
-        <div class="login-container" id="login-container">
-            <h2>P2P Chat Login</h2>
-            <p style="margin: 15px 0; color: #666;">Enter a username to join the chat</p>
-            <input type="text" id="username-input" placeholder="Username" autofocus>
-            <p style="margin: 15px 0; color: #888; font-size: 0.9em;">Server connection settings:</p>
-            <input type="text" id="host-input" placeholder="Host" value="127.0.0.1">
-            <input type="number" id="port-input" placeholder="Port" value="5000" style="margin-top: 10px;">
-            <button id="login-btn" style="margin-top: 20px; width: 100%;">Join Chat</button>
-        </div>
+<div class="container">
+    <!-- Login Form -->
+    <div class="login-container" id="login-container">
+        <h2>P2P Chat Login</h2>
+        <p style="margin: 15px 0; color: #666;">Enter a username to join the chat</p>
+        <input type="text" id="username-input" placeholder="Username" autofocus>
+        <p style="margin: 15px 0; color: #888; font-size: 0.9em;">Server connection settings:</p>
+        <input type="text" id="host-input" placeholder="Host" value="127.0.0.1">
+        <input type="number" id="port-input" placeholder="Port" value="5000" style="margin-top: 10px;">
+        <button id="login-btn" style="margin-top: 20px; width: 100%;">Join Chat</button>
+    </div>
 
-        <!-- Chat Interface -->
-        <div class="chat-container" id="chat-container">
-            <div class="chat-header">
-                <div>
-                    <h2 id="header-username"></h2>
-                    <div class="online-users" id="online-users">No users online</div>
-                </div>
-                <button id="logout-btn">Logout</button>
+    <!-- Chat Interface -->
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+            <div>
+                <h2 id="header-username"></h2>
+                <div class="online-users" id="online-users">No users online</div>
             </div>
-            <div class="chat-messages" id="chat-messages"></div>
-            <div class="recipient-container">
-                <span>To: </span>
-                <input type="text" id="recipient-input" placeholder="Username">
-                <span id="recipient-note">Private message</span>
-            </div>
-            <div class="chat-input">
-                <input type="text" id="message-input" placeholder="Type your message...">
-                <button id="send-btn">Send</button>
-            </div>
-            <div class="commands">
-                <button id="check-messages-btn" class="command-btn">Check Stored Messages</button>
-                <button id="subscribe-btn" class="command-btn">Subscribe to Thermometer</button>
-                <button id="unsubscribe-btn" class="command-btn">Unsubscribe</button>
+            <button id="logout-btn">Logout</button>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="recipient-container">
+            <span>To: </span>
+            <input type="text" id="recipient-input" placeholder="Username">
+            <span id="recipient-note">Private message</span>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Type your message...">
+            <button id="send-btn">Send</button>
+        </div>
+        <div class="commands">
+            <button id="check-messages-btn" class="command-btn">Check Stored Messages</button>
+            <button id="subscribe-btn" class="command-btn">Subscribe to Thermometer</button>
+            <button id="unsubscribe-btn" class="command-btn">Unsubscribe</button>
+            <button id="openai-btn" class="command-btn">Chat with OpenAI</button>
+        </div>
+        <div id="bot-commands" style="display: none; background-color: #f0f7ff; padding: 10px; margin-top: 10px; border-radius: 5px;">
+            <h4>OpenAI Bot Commands</h4>
+            <div class="bot-commands-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;">
+                <button class="bot-cmd-btn" data-cmd="help">Get Help</button>
+                <button class="bot-cmd-btn" data-cmd="personality happy">Happy Mode</button>
+                <button class="bot-cmd-btn" data-cmd="personality angry">Angry Mode</button>
+                <button class="bot-cmd-btn" data-cmd="personality spanish">Spanish Mode</button>
+                <button class="bot-cmd-btn" data-cmd="rotate">Rotate Personality</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // DOM Elements
-        const loginContainer = document.getElementById('login-container');
-        const chatContainer = document.getElementById('chat-container');
-        const usernameInput = document.getElementById('username-input');
-        const hostInput = document.getElementById('host-input');
-        const portInput = document.getElementById('port-input');
-        const loginBtn = document.getElementById('login-btn');
-        const headerUsername = document.getElementById('header-username');
-        const onlineUsers = document.getElementById('online-users');
-        const chatMessages = document.getElementById('chat-messages');
-        const messageInput = document.getElementById('message-input');
-        const recipientInput = document.getElementById('recipient-input');
-        const sendBtn = document.getElementById('send-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const checkMessagesBtn = document.getElementById('check-messages-btn');
-        const subscribeBtn = document.getElementById('subscribe-btn');
-        const unsubscribeBtn = document.getElementById('unsubscribe-btn');
+<script>
+    // DOM Elements
+    const loginContainer = document.getElementById('login-container');
+    const chatContainer = document.getElementById('chat-container');
+    const usernameInput = document.getElementById('username-input');
+    const hostInput = document.getElementById('host-input');
+    const portInput = document.getElementById('port-input');
+    const loginBtn = document.getElementById('login-btn');
+    const headerUsername = document.getElementById('header-username');
+    const onlineUsers = document.getElementById('online-users');
+    const chatMessages = document.getElementById('chat-messages');
+    const messageInput = document.getElementById('message-input');
+    const recipientInput = document.getElementById('recipient-input');
+    const sendBtn = document.getElementById('send-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const checkMessagesBtn = document.getElementById('check-messages-btn');
+    const subscribeBtn = document.getElementById('subscribe-btn');
+    const unsubscribeBtn = document.getElementById('unsubscribe-btn');
 
-        // WebSocket connection
-        let socket = null;
-        let username = '';
+    // WebSocket connection
+    let socket = null;
+    let username = '';
 
-        // Login form handler
-        loginBtn.addEventListener('click', () => {
-            username = usernameInput.value.trim();
-            const host = hostInput.value.trim();
-            const port = portInput.value.trim();
+    // Login form handler
+    loginBtn.addEventListener('click', () => {
+        username = usernameInput.value.trim();
+        const host = hostInput.value.trim();
+        const port = portInput.value.trim();
+        
+        if (!username) {
+            alert('Please enter a username');
+            return;
+        }
+        
+        // Connect to WebSocket server
+        connect(host, port, username);
+    });
+
+    // Connect to WebSocket server
+    function connect(host, port, username) {
+        try {
+            // Connect to the WebSocket adapter instead of directly to the TCP server
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsHost = window.location.hostname; // Use the same hostname as the page
+            const wsPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
             
-            if (!username) {
-                alert('Please enter a username');
+            socket = new WebSocket(`${wsProtocol}//${wsHost}:${wsPort}/ws`);
+            
+            console.log(`Connecting to WebSocket at ${wsProtocol}//${wsHost}:${wsPort}/ws`);
+            
+            socket.onopen = () => {
+                console.log('Connected to server');
+                // Send username upon connection
+                socket.send(JSON.stringify({
+                    type: 'login',
+                    username: username,
+                    server_host: host,  // Pass the TCP server host
+                    server_port: port   // Pass the TCP server port
+                }));
+            };
+            
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            };
+            
+            socket.onclose = () => {
+                console.log('Disconnected from server');
+                showLoginForm();
+                addSystemMessage('Disconnected from server');
+            };
+            
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                alert('Failed to connect to the server. Please check your connection settings.');
+                showLoginForm();
+            };
+            
+            // Show chat UI
+            showChatUI(username);
+        } catch (error) {
+            console.error('Connection error:', error);
+            alert('Failed to connect to the server. Please check your connection settings.');
+        }
+    }
+
+    // Handle incoming messages
+    function handleMessage(data) {
+        switch (data.type) {
+            case 'login_success':
+                headerUsername.textContent = username;
+                updateOnlineUsers(data.online_users);
+                addSystemMessage(`Connected! Users online: ${data.online_users.join(', ')}`);
+                break;
+                
+            case 'user_joined':
+                updateOnlineUsers(data.online_users);
+                addSystemMessage(`${data.username} joined the chat`);
+                break;
+                
+            case 'user_left':
+                updateOnlineUsers(data.online_users);
+                addSystemMessage(`${data.username} left the chat`);
+                break;
+                
+            case 'chat':
+                addChatMessage(data.sender, data.message, 'incoming', formatTime(data.timestamp));
+                break;
+                
+            case 'stored':
+                addStoredMessage(data.sender, data.message, formatTime(data.timestamp));
+                break;
+                
+            case 'notification':
+                addNotification(data.sender, data.message, data.metadata, formatTime(data.timestamp));
+                break;
+                
+            case 'system':
+                addSystemMessage(data.message);
+                break;
+                
+            default:
+                console.log('Unknown message type:', data);
+        }
+    }
+
+    // Add a chat message to the UI
+    function addChatMessage(sender, message, type, time) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        
+        const senderElement = document.createElement('div');
+        senderElement.className = 'message-sender';
+        senderElement.textContent = sender;
+        
+        const messageContent = document.createElement('div');
+        messageContent.textContent = message;
+        
+        const timeElement = document.createElement('div');
+        timeElement.className = 'message-time';
+        timeElement.textContent = time;
+        
+        messageDiv.appendChild(senderElement);
+        messageDiv.appendChild(messageContent);
+        messageDiv.appendChild(timeElement);
+        
+        chatMessages.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    // Add a system message
+    function addSystemMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message system';
+        messageDiv.textContent = message;
+        chatMessages.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    // Add a stored message
+    function addStoredMessage(sender, message, time) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message stored';
+        
+        const senderElement = document.createElement('div');
+        senderElement.className = 'message-sender';
+        senderElement.textContent = `Stored message from ${sender}`;
+        
+        const messageContent = document.createElement('div');
+        messageContent.textContent = message;
+        
+        const timeElement = document.createElement('div');
+        timeElement.className = 'message-time';
+        timeElement.textContent = time;
+        
+        messageDiv.appendChild(senderElement);
+        messageDiv.appendChild(messageContent);
+        messageDiv.appendChild(timeElement);
+        
+        chatMessages.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    // Add a notification message (e.g., from thermometer)
+    function addNotification(sender, message, metadata, time) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message notification';
+        
+        const senderElement = document.createElement('div');
+        senderElement.className = 'message-sender';
+        senderElement.textContent = sender;
+        
+        const messageContent = document.createElement('div');
+        messageContent.textContent = message;
+        
+        // Add metadata if present
+        if (metadata && Object.keys(metadata).length > 0) {
+            const metadataDiv = document.createElement('div');
+            metadataDiv.style.marginTop = '8px';
+            metadataDiv.style.fontSize = '0.9em';
+            
+            if (metadata.temperature) {
+                metadataDiv.textContent = `Temperature: ${metadata.temperature}°${metadata.unit || 'C'}`;
+                
+                if (metadata.time) {
+                    metadataDiv.textContent += ` (at ${formatTime(metadata.time)})`;
+                }
+            } else if (metadata.temps) {
+                metadataDiv.textContent = `Temperature range: ${metadata.temps.join('°C, ')}°C`;
+                
+                if (metadata.time) {
+                    metadataDiv.textContent += ` (at ${formatTime(metadata.time)})`;
+                }
+            }
+            
+            messageContent.appendChild(metadataDiv);
+        }
+        
+        const timeElement = document.createElement('div');
+        timeElement.className = 'message-time';
+        timeElement.textContent = time;
+        
+        messageDiv.appendChild(senderElement);
+        messageDiv.appendChild(messageContent);
+        messageDiv.appendChild(timeElement);
+        
+        chatMessages.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    // Update the online users display
+    function updateOnlineUsers(users) {
+        if (users && users.length > 0) {
+            onlineUsers.textContent = `Online: ${users.join(', ')}`;
+        } else {
+            onlineUsers.textContent = 'No users online';
+        }
+    }
+
+    // Format timestamp
+    function formatTime(timestamp) {
+        if (!timestamp) return '';
+        
+        try {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString();
+        } catch (e) {
+            return timestamp;
+        }
+    }
+
+    // Scroll chat to bottom
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Show the chat UI
+    function showChatUI(username) {
+        loginContainer.style.display = 'none';
+        chatContainer.style.display = 'flex';
+        headerUsername.textContent = username;
+        messageInput.focus();
+    }
+
+    // Show the login form
+    function showLoginForm() {
+        chatContainer.style.display = 'none';
+        loginContainer.style.display = 'block';
+        usernameInput.focus();
+        
+        // Clear chat messages
+        chatMessages.innerHTML = '';
+    }
+
+    // Send message handler
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        const recipient = recipientInput.value.trim();
+        
+        if (!message) return;
+        
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            const msgObj = {
+                type: 'chat',
+                message: message
+            };
+            
+            if (recipient) {
+                msgObj.recipient = recipient;
+                // Add outgoing message to UI
+                addChatMessage('You to ' + recipient, message, 'outgoing', formatTime(new Date()));
+            } else {
+                // No recipient means broadcast, which isn't supported in the original code
+                addSystemMessage('Please specify a recipient for your message');
                 return;
             }
             
-            // Connect to WebSocket server
-            connect(host, port, username);
-        });
-
-        // Connect to WebSocket server
-        function connect(host, port, username) {
-            try {
-                // Connect to the WebSocket adapter instead of directly to the TCP server
-                const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const wsHost = window.location.hostname; // Use the same hostname as the page
-                const wsPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
-                
-                socket = new WebSocket(`${wsProtocol}//${wsHost}:${wsPort}/ws`);
-                
-                console.log(`Connecting to WebSocket at ${wsProtocol}//${wsHost}:${wsPort}/ws`);
-                
-                socket.onopen = () => {
-                    console.log('Connected to server');
-                    // Send username upon connection
-                    socket.send(JSON.stringify({
-                        type: 'login',
-                        username: username,
-                        server_host: host,  // Pass the TCP server host
-                        server_port: port   // Pass the TCP server port
-                    }));
-                };
-                
-                socket.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    handleMessage(data);
-                };
-                
-                socket.onclose = () => {
-                    console.log('Disconnected from server');
-                    showLoginForm();
-                    addSystemMessage('Disconnected from server');
-                };
-                
-                socket.onerror = (error) => {
-                    console.error('WebSocket error:', error);
-                    alert('Failed to connect to the server. Please check your connection settings.');
-                    showLoginForm();
-                };
-                
-                // Show chat UI
-                showChatUI(username);
-            } catch (error) {
-                console.error('Connection error:', error);
-                alert('Failed to connect to the server. Please check your connection settings.');
-            }
-        }
-
-        // Handle incoming messages
-        function handleMessage(data) {
-            switch (data.type) {
-                case 'login_success':
-                    headerUsername.textContent = username;
-                    updateOnlineUsers(data.online_users);
-                    addSystemMessage(`Connected! Users online: ${data.online_users.join(', ')}`);
-                    break;
-                    
-                case 'user_joined':
-                    updateOnlineUsers(data.online_users);
-                    addSystemMessage(`${data.username} joined the chat`);
-                    break;
-                    
-                case 'user_left':
-                    updateOnlineUsers(data.online_users);
-                    addSystemMessage(`${data.username} left the chat`);
-                    break;
-                    
-                case 'chat':
-                    addChatMessage(data.sender, data.message, 'incoming', formatTime(data.timestamp));
-                    break;
-                    
-                case 'stored':
-                    addStoredMessage(data.sender, data.message, formatTime(data.timestamp));
-                    break;
-                    
-                case 'notification':
-                    addNotification(data.sender, data.message, data.metadata, formatTime(data.timestamp));
-                    break;
-                    
-                case 'system':
-                    addSystemMessage(data.message);
-                    break;
-                    
-                default:
-                    console.log('Unknown message type:', data);
-            }
-        }
-
-        // Add a chat message to the UI
-        function addChatMessage(sender, message, type, time) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            
-            const senderElement = document.createElement('div');
-            senderElement.className = 'message-sender';
-            senderElement.textContent = sender;
-            
-            const messageContent = document.createElement('div');
-            messageContent.textContent = message;
-            
-            const timeElement = document.createElement('div');
-            timeElement.className = 'message-time';
-            timeElement.textContent = time;
-            
-            messageDiv.appendChild(senderElement);
-            messageDiv.appendChild(messageContent);
-            messageDiv.appendChild(timeElement);
-            
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
-        }
-
-        // Add a system message
-        function addSystemMessage(message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message system';
-            messageDiv.textContent = message;
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
-        }
-
-        // Add a stored message
-        function addStoredMessage(sender, message, time) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message stored';
-            
-            const senderElement = document.createElement('div');
-            senderElement.className = 'message-sender';
-            senderElement.textContent = `Stored message from ${sender}`;
-            
-            const messageContent = document.createElement('div');
-            messageContent.textContent = message;
-            
-            const timeElement = document.createElement('div');
-            timeElement.className = 'message-time';
-            timeElement.textContent = time;
-            
-            messageDiv.appendChild(senderElement);
-            messageDiv.appendChild(messageContent);
-            messageDiv.appendChild(timeElement);
-            
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
-        }
-
-        // Add a notification message (e.g., from thermometer)
-        function addNotification(sender, message, metadata, time) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message notification';
-            
-            const senderElement = document.createElement('div');
-            senderElement.className = 'message-sender';
-            senderElement.textContent = sender;
-            
-            const messageContent = document.createElement('div');
-            messageContent.textContent = message;
-            
-            // Add metadata if present
-            if (metadata && Object.keys(metadata).length > 0) {
-                const metadataDiv = document.createElement('div');
-                metadataDiv.style.marginTop = '8px';
-                metadataDiv.style.fontSize = '0.9em';
-                
-                if (metadata.temperature) {
-                    metadataDiv.textContent = `Temperature: ${metadata.temperature}°${metadata.unit || 'C'}`;
-                    
-                    if (metadata.time) {
-                        metadataDiv.textContent += ` (at ${formatTime(metadata.time)})`;
-                    }
-                } else if (metadata.temps) {
-                    metadataDiv.textContent = `Temperature range: ${metadata.temps.join('°C, ')}°C`;
-                    
-                    if (metadata.time) {
-                        metadataDiv.textContent += ` (at ${formatTime(metadata.time)})`;
-                    }
-                }
-                
-                messageContent.appendChild(metadataDiv);
-            }
-            
-            const timeElement = document.createElement('div');
-            timeElement.className = 'message-time';
-            timeElement.textContent = time;
-            
-            messageDiv.appendChild(senderElement);
-            messageDiv.appendChild(messageContent);
-            messageDiv.appendChild(timeElement);
-            
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
-        }
-
-        // Update the online users display
-        function updateOnlineUsers(users) {
-            if (users && users.length > 0) {
-                onlineUsers.textContent = `Online: ${users.join(', ')}`;
-            } else {
-                onlineUsers.textContent = 'No users online';
-            }
-        }
-
-        // Format timestamp
-        function formatTime(timestamp) {
-            if (!timestamp) return '';
-            
-            try {
-                const date = new Date(timestamp);
-                return date.toLocaleTimeString();
-            } catch (e) {
-                return timestamp;
-            }
-        }
-
-        // Scroll chat to bottom
-        function scrollToBottom() {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Show the chat UI
-        function showChatUI(username) {
-            loginContainer.style.display = 'none';
-            chatContainer.style.display = 'flex';
-            headerUsername.textContent = username;
+            socket.send(JSON.stringify(msgObj));
+            messageInput.value = '';
             messageInput.focus();
         }
+    }
 
-        // Show the login form
-        function showLoginForm() {
-            chatContainer.style.display = 'none';
-            loginContainer.style.display = 'block';
-            usernameInput.focus();
-            
-            // Clear chat messages
-            chatMessages.innerHTML = '';
+    // Logout handler
+    logoutBtn.addEventListener('click', () => {
+        if (socket) {
+            socket.close();
         }
+        showLoginForm();
+    });
 
-        // Send message handler
-        sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            const recipient = recipientInput.value.trim();
-            
-            if (!message) return;
-            
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                const msgObj = {
-                    type: 'chat',
-                    message: message
-                };
-                
-                if (recipient) {
-                    msgObj.recipient = recipient;
-                    // Add outgoing message to UI
-                    addChatMessage('You to ' + recipient, message, 'outgoing', formatTime(new Date()));
-                } else {
-                    // No recipient means broadcast, which isn't supported in the original code
-                    addSystemMessage('Please specify a recipient for your message');
-                    return;
-                }
-                
-                socket.send(JSON.stringify(msgObj));
-                messageInput.value = '';
-                messageInput.focus();
-            }
+    // Check stored messages
+    checkMessagesBtn.addEventListener('click', () => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                type: 'command',
+                command: '!check'
+            }));
         }
+    });
 
-        // Logout handler
-        logoutBtn.addEventListener('click', () => {
-            if (socket) {
-                socket.close();
-            }
-            showLoginForm();
-        });
+    // Subscribe to thermometer
+    subscribeBtn.addEventListener('click', () => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                type: 'chat',
+                recipient: 'thermometer1',
+                message: 'subscribe'
+            }));
+            addSystemMessage('Subscription request sent to thermometer1');
+        }
+    });
 
-        // Check stored messages
-        checkMessagesBtn.addEventListener('click', () => {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    type: 'command',
-                    command: '!check'
-                }));
-            }
-        });
+    // Unsubscribe from thermometer
+    unsubscribeBtn.addEventListener('click', () => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                type: 'chat',
+                recipient: 'thermometer1',
+                message: 'unsubscribe'
+            }));
+            addSystemMessage('Unsubscribe request sent to thermometer1');
+        }
+    });
 
-        // Subscribe to thermometer
-        subscribeBtn.addEventListener('click', () => {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    type: 'chat',
-                    recipient: 'thermometer1',
-                    message: 'subscribe'
-                }));
-                addSystemMessage('Subscription request sent to thermometer1');
-            }
-        });
+    // Initialize
+    window.addEventListener('load', () => {
+        showLoginForm();
+    });
 
-        // Unsubscribe from thermometer
-        unsubscribeBtn.addEventListener('click', () => {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    type: 'chat',
-                    recipient: 'thermometer1',
-                    message: 'unsubscribe'
-                }));
-                addSystemMessage('Unsubscribe request sent to thermometer1');
-            }
-        });
-
-        // Initialize
-        window.addEventListener('load', () => {
-            showLoginForm();
-        });
-
-        // Handle page unload
-        window.addEventListener('beforeunload', () => {
-            if (socket) {
-                socket.close();
-            }
-        });
-    </script>
+    // Handle page unload
+    window.addEventListener('beforeunload', () => {
+        if (socket) {
+            socket.close();
+        }
+    });
+</script>
 </body>
 </html>

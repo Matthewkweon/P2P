@@ -13,8 +13,9 @@ async def send_message(writer, message):
     try:
         writer.write(message.encode())
         await writer.drain()
+        return True  # Message sent successfully
     except:
-        pass  # Ignore write errors
+        return False  # Failed to send message
 
 async def store_message(sender, destination, message, api_base=DEFAULT_API_BASE):
     async with httpx.AsyncClient() as client:
@@ -82,8 +83,15 @@ async def handle_client(reader, writer, api_base=DEFAULT_API_BASE):
 
                 if target_user in clients:
                     _, target_writer = clients[target_user]
-                    await send_message(target_writer, f"[{username}][{timestamp}] {msg_content}\n")
+                    # Try to send message directly
+                    sent = await send_message(target_writer, f"[{username}][{timestamp}] {msg_content}\n")
+                    if not sent:
+                        # If failed to send (connection might be stale), store it
+                        print(f"Failed to send message to {target_user}, storing instead.")
+                        await store_message(username, target_user, msg_content, api_base)
+                        await send_message(writer, f"Message to '{target_user}' couldn't be delivered. Message saved.\n")
                 else:
+                    # User is offline, store the message
                     await store_message(username, target_user, msg_content, api_base)
                     await send_message(writer, f"User '{target_user}' is offline. Message saved.\n")
             else:
