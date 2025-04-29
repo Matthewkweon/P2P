@@ -1,13 +1,12 @@
-INFO:     Started server process [76856]
+INFO:     Started server process [82678]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-INFO:     127.0.0.1:50649 - "GET /messages/thermometer1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50650 - "GET /messages/openai HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50655 - "POST /messages/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50659 - "GET /messages/matt HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50674 - "GET /messages/matt HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55222 - "GET /messages/thermometer1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55223 - "GET /messages/openai HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55228 - "POST /messages/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55236 - "GET /messages/attt HTTP/1.1" 200 OK
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [76856]
+INFO:     Finished server process [82678]

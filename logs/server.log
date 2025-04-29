@@ -2,12 +2,10 @@ Server running on ('127.0.0.1', 5000)
 Using API at http://127.0.0.1:8000
 thermometer1 connected.
 openai connected.
-matt connected.
-matt disconnected.
-matt connected.
+attt connected.
 openai disconnected.
 thermometer1 disconnected.
-matt disconnected.
+attt disconnected.
 Traceback (most recent call last):
   File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/runners.py", line 118, in run
     return self._loop.run_until_complete(task)

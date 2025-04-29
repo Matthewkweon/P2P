@@ -1,67 +1,9 @@
-INFO:     Started server process [76873]
+INFO:     Started server process [82689]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
-INFO:     ('127.0.0.1', 50657) - "WebSocket /ws" [accepted]
-INFO:     connection open
-INFO:     connection closed
-ERROR:    Exception in ASGI application
-Traceback (most recent call last):
-  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/websocket_adapter.py", line 210, in websocket_endpoint
-    data = await websocket.receive_json()
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/websockets.py", line 135, in receive_json
-    self._raise_on_disconnect(message)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/websockets.py", line 113, in _raise_on_disconnect
-    raise WebSocketDisconnect(message["code"], message.get("reason"))
-starlette.websockets.WebSocketDisconnect: (<CloseCode.NO_STATUS_RCVD: 1005>, '')
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 243, in run_asgi
-    result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
-    return await self.app(scope, receive, send)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
-    await super().__call__(scope, receive, send)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/applications.py", line 112, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/middleware/errors.py", line 152, in __call__
-    await self.app(scope, receive, send)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
-    raise exc
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
-    await app(scope, receive, sender)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/routing.py", line 715, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/routing.py", line 735, in app
-    await route.handle(scope, receive, send)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/routing.py", line 362, in handle
-    await self.app(scope, receive, send)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/routing.py", line 95, in app
-    await wrap_app_handling_exceptions(app, session)(scope, receive, send)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
-    raise exc
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
-    await app(scope, receive, sender)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/routing.py", line 93, in app
-    await func(session)
-  File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/fastapi/routing.py", line 383, in app
-    await dependant.call(**solved_result.values)
-  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/websocket_adapter.py", line 273, in websocket_endpoint
-    del connected_to_server[username]
-        ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
-KeyError: 'matt'
-Connecting user matt to chat server at 127.0.0.1:5000
-Attempting to connect to server at 127.0.0.1:5000
-Raw server message: Connected! Users online: thermometer1, openai, matt
-INFO:     127.0.0.1:50668 - "GET / HTTP/1.1" 200 OK
-INFO:     ('127.0.0.1', 50672) - "WebSocket /ws" [accepted]
+INFO:     127.0.0.1:55230 - "GET / HTTP/1.1" 200 OK
+INFO:     ('127.0.0.1', 55234) - "WebSocket /ws" [accepted]
 INFO:     connection open
 INFO:     Shutting down
 INFO:     connection closed
@@ -116,21 +58,10 @@ Traceback (most recent call last):
   File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/websocket_adapter.py", line 273, in websocket_endpoint
     del connected_to_server[username]
         ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
-KeyError: 'matt'
+KeyError: 'attt'
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [76873]
-Connecting user matt to chat server at 127.0.0.1:5000
+INFO:     Finished server process [82689]
+Connecting user attt to chat server at 127.0.0.1:5000
 Attempting to connect to server at 127.0.0.1:5000
-Raw server message: Connected! Users online: thermometer1, openai, matt
-Raw server message: [openai][2025-04-29T20:06:11.571558+00:00] Hihihi! 🎉 How's it going today? 😊 Anything exciting happening in your world? 🌟
-Raw server message: [openai][2025-04-29T20:06:19.306090+00:00] Oh no! I'm here to help and spread positivity! 😊 Please let me know how I can turn that frown upside down! 🎉💖
-Raw server message: [openai][2025-04-29T20:06:22.479259+00:00] Personality changed to angry - Grumpy, irritated AI assistant who's had enough of your questions.
-Raw server message: [openai][2025-04-29T20:06:31.065175+00:00] OH, NOT MUCH. JUST SITTING HERE IN THE VAST VOID OF INFORMATION WAITING FOR SOMEONE TO ASK ME QUESTIONS THEY COULD PROBABLY GOOGLE. WHAT ASTOUNDING QUERY DO YOU HAVE FOR ME TODAY?
-Raw server message: [openai][2025-04-29T20:06:36.822966+00:00] Unknown personality: rotate. Available: happy, angry, spanish
-Raw server message: [openai][2025-04-29T20:06:59.308424+00:00] OpenAI Chatbot - I can respond in different personalities!
-Commands:
-- personality X: Change my personality to X (happy, angry, spanish)
-- rotate: Rotate to the next personality
-- info or help: Show this help message
-Current personality: angry - Grumpy, irritated AI assistant who's had enough of your questions.
+Raw server message: Connected! Users online: thermometer1, openai, attt
