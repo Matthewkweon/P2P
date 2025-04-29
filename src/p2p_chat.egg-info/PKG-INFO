@@ -2,9 +2,10 @@ Metadata-Version: 2.4
 Name: p2p-chat
 Version: 0.1.0
 Summary: A simple asynchronous P2P chat application
-Home-page: https://github.com/yourusername/p2p-chat
-Author: Your Name
-Author-email: your.email@example.com
+Author-email: Your Name <your.email@example.com>
+License: MIT
+Project-URL: Homepage, https://github.com/yourusername/p2p-chat
+Project-URL: Bug Tracker, https://github.com/yourusername/p2p-chat/issues
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
@@ -16,15 +17,8 @@ Requires-Dist: fastapi
 Requires-Dist: uvicorn
 Requires-Dist: motor
 Requires-Dist: python-dotenv
-Dynamic: author
-Dynamic: author-email
-Dynamic: classifier
-Dynamic: description
-Dynamic: description-content-type
-Dynamic: home-page
-Dynamic: requires-dist
-Dynamic: requires-python
-Dynamic: summary
+Requires-Dist: pytest
+Requires-Dist: pytest-asyncio
 
 # P2P
 
@@ -251,10 +245,7 @@ Ignore the dummy_server_client (it is for the first part of testing the client/s
 - No persistence (messages are lost if the server restarts)
 - No group messaging functionality
 
-## Future Improvements
-
-- Add message encryption for privacy
-- Implement user authentication
-- Add persistent storage for messages
-- Support for group chats and channels
-- Add a graphical user interface
+## Things to add in the future:
+- Add a password for privacy and user authentication
+- support group chats
+- add a graphical user interface

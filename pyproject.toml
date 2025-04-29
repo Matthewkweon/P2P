@@ -1,3 +1,41 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "p2p-chat"
+version = "0.1.0"
+description = "A simple asynchronous P2P chat application"
+readme = "README.md"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "asyncio",
+    "httpx",
+    "fastapi",
+    "uvicorn",
+    "motor",
+    "python-dotenv",
+    "pytest",
+    "pytest-asyncio",
+]
+requires-python = ">=3.8"
+
+[project.scripts]
+p2p-chat-server = "p2p_chat.server:main_entry"
+p2p-chat-client = "p2p_chat.client:main_entry"
+p2p-chat-api = "p2p_chat.message_api:main_entry"
+p2p-chat-thermometer = "p2p_chat.services.thermometer:main_entry"
+p2p-chat-openai = "p2p_chat.openai:main_entry"
+p2p-chat-web = "p2p_chat.websocket_adapter:main_entry"
+
+[project.urls]
+"Homepage" = "https://github.com/yourusername/p2p-chat"
+"Bug Tracker" = "https://github.com/yourusername/p2p-chat/issues"

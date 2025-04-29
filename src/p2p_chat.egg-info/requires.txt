@@ -4,3 +4,5 @@ fastapi
 uvicorn
 motor
 python-dotenv
+pytest
+pytest-asyncio

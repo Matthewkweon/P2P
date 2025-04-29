@@ -17,13 +17,17 @@ The application consists of three main components:
 1. **Server (`async_server.py`)**: Manages client connections and routes messages.
 2. **Client (`async_client.py`)**: Connects to the server, sends and receives messages
 3. **Message_api (`message_api.py`)**: Connects to my fastapi and stores messages inside of my database using mongoDB
-
+4. **Web Interface (`websocket_adapter.py` + `static/index.html`)**: Web-based chat interface
+5. **Thermometer Service (`thermometer.py`)**: Simulated IoT device that broadcasts temperature readings
+6. **OpenAI Bot (`openai.py`)**: AI assistant powered by OpenAI's API
 
 ## Requirements
 
 - Python 3.12.4
 - asyncio library (built into Python standard library)
 - pytest and pytest-asyncio (for running tests)
+- MongoDB Community Edition 7.0
+- OpenAI API key (optional, for the AI bot only)
 
 ## Installation
 
@@ -39,33 +43,76 @@ The application consists of three main components:
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. Install test dependencies:
+3. Install required dependencies:
    ```bash
-   pip install pytest pytest-asyncio
+   pip install -r requirements.txt
    ```
 
-4. Install all requirements inside of requirements.txt
+4. Create a `.env` file in the root directory with:
+   ```
+   MONGO_URL=mongodb://localhost:27017
+   OPENAI_API_KEY=your_openai_api_key_here  # Optional, for OpenAI bot
+   ```
 
 ## Usage
 
-### Starting the Server
+### Using the Launcher Script (Recommended)
 
-First get the fastapi and mongoDB up and running.
-
-make sure that the mongoDB (using community @7.0) and the message_api.py is running.
-
-Run the FastAPI server to begin storing messages server side:
-```bash
-python message_api.py
-```
-
-Then, run the server to begin accepting connections:
+The easiest way to run the application is using the launcher script, which starts all components in the correct order:
 
 ```bash
-python async_server.py
+python launcher.py
 ```
 
-The server will start on localhost (127.0.0.1) port 5000.
+This will start:
+- MongoDB connection
+- Message API
+- Chat server
+- Web interface (accessible at http://localhost:8080)
+- Thermometer service
+- OpenAI bot (if API key is configured)
+
+All output is directed to log files in the "logs" directory.
+
+Options:
+```bash
+python launcher.py --no-web           # Don't start the web interface
+python launcher.py --no-thermometer   # Don't start the thermometer service
+python launcher.py --no-openai        # Don't start the OpenAI bot
+```
+
+### Starting Components Manually
+
+If you prefer to start components individually:
+
+1. First ensure MongoDB is running
+
+2. Run the Message API server:
+   ```bash
+   python message_api.py
+   ```
+
+3. Run the chat server:
+   ```bash
+   python async_server.py
+   ```
+   The server will start on localhost (127.0.0.1) port 5000.
+
+4. For web interface (optional):
+   ```bash
+   python websocket_adapter.py
+   ```
+   Then access http://localhost:8080 in your browser
+
+5. For thermometer service (optional):
+   ```bash
+   python thermometer.py
+   ```
+
+6. For OpenAI bot (optional):
+   ```bash
+   python openai.py
+   ```
 
 ### Connecting with a Client
 
@@ -171,6 +218,24 @@ Each of these commands will give you a message in your "messages" after you run 
 
 We needed the sender, destination, message, and timestamp to keep a structure for when users send messages to each other.
 
+## Using the OpenAI Bot
+
+The project includes an OpenAI-powered chatbot that can respond to users with different personalities. To interact with the OpenAI bot:
+
+1. Make sure you have an OpenAI API key set in your `.env` file
+2. Start the bot with `python openai.py` or use the launcher script
+3. In any client, send a direct message to the "openai" user:
+   ```
+   openai: Hello, how are you?
+   ```
+
+Special commands for the bot:
+- `openai: help` - Get a list of available commands
+- `openai: personality happy` - Change to happy personality
+- `openai: personality angry` - Change to angry personality
+- `openai: personality spanish` - Switch to Spanish mode
+- `openai: rotate` - Rotate to the next personality
+
 ## Testing
 
 The application includes automated tests using pytest and pytest-asyncio. The tests verify functionality like message routing and offline message storage.
@@ -203,6 +268,15 @@ The client provides a simple interface for connecting to the server and exchangi
 - Runs concurrent tasks for sending and receiving messages
 - Formats messages according to the messaging protocol
 
+### Web Interface
+
+The web interface provides a browser-based way to access the chat:
+
+- Clean, modern UI with message history
+- Online users list
+- Command buttons for common actions
+- Support for private messaging
+
 ## Project Structure
 
 ```
@@ -211,7 +285,13 @@ async-chat-app/
 ├── async_client.py     # Client implementation
 ├── test_chat_app.py    # Test suite
 ├── message_api.py      # Handles the API calls and storing of messages in a database
-├── requirements.txt    # requirements
+├── thermometer.py      # Thermometer service implementation
+├── openai.py           # OpenAI bot implementation
+├── websocket_adapter.py # Web interface server
+├── static/             # Web interface files
+│   └── index.html      # Web client implementation
+├── launcher.py         # Script to launch all components
+├── requirements.txt    # Project dependencies
 └── README.md           # This file
 ```
 Ignore the dummy_server_client (it is for the first part of testing the client/server without asyncio)

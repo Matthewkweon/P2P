@@ -4,7 +4,9 @@ setup.py
 src/p2p_chat/__init__.py
 src/p2p_chat/client.py
 src/p2p_chat/message_api.py
+src/p2p_chat/openai.py
 src/p2p_chat/server.py
+src/p2p_chat/websocket_adapter.py
 src/p2p_chat.egg-info/PKG-INFO
 src/p2p_chat.egg-info/SOURCES.txt
 src/p2p_chat.egg-info/dependency_links.txt
@@ -13,3 +15,4 @@ src/p2p_chat.egg-info/requires.txt
 src/p2p_chat.egg-info/top_level.txt
 src/p2p_chat/services/__init__.py
 src/p2p_chat/services/thermometer.py
+src/tests/test_chat_app.py

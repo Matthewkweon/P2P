@@ -1,5 +1,7 @@
 [console_scripts]
 p2p-chat-api = p2p_chat.message_api:main_entry
 p2p-chat-client = p2p_chat.client:main_entry
+p2p-chat-openai = p2p_chat.openai:main_entry
 p2p-chat-server = p2p_chat.server:main_entry
 p2p-chat-thermometer = p2p_chat.services.thermometer:main_entry
+p2p-chat-web = p2p_chat.websocket_adapter:main_entry
