@@ -33,8 +33,8 @@ The application consists of three main components:
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/async-chat-app.git
-   cd async-chat-app
+   git clone https://github.com/matthewkweon/P2P
+   cd P2P
    ```
 
 2. Set up a virtual environment (optional but recommended):
@@ -89,42 +89,88 @@ If you prefer to start components individually:
 
 2. Run the Message API server:
    ```bash
-   python message_api.py
+   python /src/p2p_chat/message_api.py
    ```
 
 3. Run the chat server:
    ```bash
-   python async_server.py
+   python /src/p2p_chat/server.py
    ```
    The server will start on localhost (127.0.0.1) port 5000.
 
 4. For web interface (optional):
    ```bash
-   python websocket_adapter.py
+   python /src/p2p_chat/websocket_adapter.py
    ```
    Then access http://localhost:8080 in your browser
 
 5. For thermometer service (optional):
    ```bash
-   python thermometer.py
+   python src/p2p_chat/services/thermometer.py
    ```
 
 6. For OpenAI bot (optional):
    ```bash
-   python openai.py
+   python src/p2p_chat/openai.py
    ```
 
 ### Connecting with a Client
 
+#### Command Line Client
+
 Run as many clients to connect to the server. I used multiple different terminals with differnet usernames so that I can simulate communication between users. To connect, I simply ran this command in terminal to start each client:
 
 ```bash
-python async_client.py
+python /src/p2p_chat/client.py
 ```
 
 When prompted, enter a username to identify yourself in the chat.
 
-### Messaging Protocol
+#### Web Interface
+
+For a more user-friendly experience, access the web interface at http://localhost:8080/ after starting the websocket adapter. The web interface offers:
+
+1. **Login Screen**:
+   - Enter your username
+   - Optional: Configure server connection settings (host and port)
+   - Click "Join Chat" to connect
+
+2. **Chat Interface**:
+   - Modern UI with message history and online users list
+   - Different message types are color-coded:
+     - Regular messages (light blue)
+     - Your outgoing messages (light green) 
+     - System messages/stored messages (gray)
+     - Bot messages 
+
+3. **Sending Messages**:
+   - Enter recipient username in the "To:" field
+   - Type your message in the input box
+   - Click "Send" or press Enter
+
+4. **Command Buttons**:
+   - "Check Stored Messages" - Retrieves any stored messages for you (including subscription messages)
+   - "Subscribe to Thermometer" - Subscribe to temperature updates
+   - "Unsubscribe" - Stop receiving temperature updates
+   - "Chat with OpenAI" - Allows you to chat to send a message to our AI bot. 
+
+5. **OpenAI Bot Commands**:
+   - `openai: help` - Get a list of available commands
+   - `openai: personality happy` - Change to happy personality
+   - `openai: personality angry` - Change to angry personality
+   - `openai: personality spanish` - Switch to Spanish mode
+   - `openai: rotate` - Rotate to the next personality
+
+6. **Thermometer Subscription Commands**:
+   - `thermometer1: subscribe` - Subscribe to the thermometer and get the temperature periodically (100 seconds) inside of your stored messages
+   - `thermometer1: unsubscribe` - Don't receive any messages anymore
+   - `thermometer1: reboot` - Reboot the subscription
+   - `thermometer1: range` - Get range of values of temperature in stored messages
+
+7. **Logout**:
+   - Click "Logout" in the top right to disconnect
+
+### Messaging Protocol in the terminal (if you run it not on the web interface and only through pure socket communication)
 
 To send a private message to another user, use the following format:
 
@@ -168,8 +214,9 @@ This will give you all of the messages that you haven't seen you from the databa
 ### Commands
 
 - `exit`: Disconnect from the server
+- press "logout" on the web interface
 
-## Message protocol
+## Message protocol in the terminal
 
 Each message has a specific protocol:
 ```
@@ -218,7 +265,7 @@ Each of these commands will give you a message in your "messages" after you run 
 
 We needed the sender, destination, message, and timestamp to keep a structure for when users send messages to each other.
 
-## Using the OpenAI Bot
+## Using the OpenAI Bot in the terminal
 
 The project includes an OpenAI-powered chatbot that can respond to users with different personalities. To interact with the OpenAI bot:
 
@@ -235,6 +282,8 @@ Special commands for the bot:
 - `openai: personality angry` - Change to angry personality
 - `openai: personality spanish` - Switch to Spanish mode
 - `openai: rotate` - Rotate to the next personality
+
+In the web interface, you can also click the "Chat with OpenAI" button and use the command buttons that appear.
 
 ## Testing
 
@@ -273,26 +322,45 @@ The client provides a simple interface for connecting to the server and exchangi
 The web interface provides a browser-based way to access the chat:
 
 - Clean, modern UI with message history
-- Online users list
+- Online users list displayed in the header
+- Color-coded message types for better visualization
 - Command buttons for common actions
-- Support for private messaging
+- Support for private messaging with "To:" field
+- Responsive design that works on mobile and desktop
+
+The web interface communicates with the server via a WebSocket adapter (websocket_adapter.py) which:
+- Translates between WebSocket and TCP protocols
+- Manages client connections and message routing
+- Parses and formats messages for the web client
+- Provides real-time updates on user status
 
 ## Project Structure
 
 ```
-async-chat-app/
-├── async_server.py     # Server implementation
-├── async_client.py     # Client implementation
-├── test_chat_app.py    # Test suite
-├── message_api.py      # Handles the API calls and storing of messages in a database
-├── thermometer.py      # Thermometer service implementation
-├── openai.py           # OpenAI bot implementation
-├── websocket_adapter.py # Web interface server
-├── static/             # Web interface files
-│   └── index.html      # Web client implementation
-├── launcher.py         # Script to launch all components
-├── requirements.txt    # Project dependencies
-└── README.md           # This file
+P2P/
+├── .env                   # Environment variables (mongodb and openai key)
+├── .gitignore             # Git ignore file
+├── README.md              # This file
+├── install.sh             # Installation script for Unix systems
+├── launcher.py            # Script to launch all components
+├── pyproject.toml         # Python package configuration
+├── requirements.txt       # Project dependencies
+├── setup.py               # Package setup script
+├── static/                # Web interface files
+│   └── index.html         # Web client implementation
+├── src/                   # Source directory for installed package
+│   ├── p2p_chat/          # Package module
+│   │   ├── __init__.py    # Package initialization
+│   │   ├── client.py      # Client module
+│   │   ├── message_api.py # API module
+│   │   ├── openai.py      # OpenAI bot module
+│   │   ├── server.py      # Server module
+│   │   ├── websocket_adapter.py # Web adapter module
+│   │   └── services/      # Services submodule
+│   │       ├── __init__.py # Services initialization
+│   │       └── thermometer.py # Thermometer service module
+│   └── tests/             # Test directory
+│       └── test_chat_app.py # Test suite
 ```
 Ignore the dummy_server_client (it is for the first part of testing the client/server without asyncio)
 
@@ -302,8 +370,3 @@ Ignore the dummy_server_client (it is for the first part of testing the client/s
 - No authentication beyond username selection
 - No persistence (messages are lost if the server restarts)
 - No group messaging functionality
-
-## Things to add in the future:
-- Add a password for privacy and user authentication
-- support group chats
-- add a graphical user interface
