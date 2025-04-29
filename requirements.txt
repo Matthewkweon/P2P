@@ -6,3 +6,6 @@ pytest-asyncio
 uvicorn
 python-dotenv
 pymongo
+websocket-client
+websocket
+wsproto

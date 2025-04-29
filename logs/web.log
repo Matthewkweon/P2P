@@ -1,11 +1,10 @@
-INFO:     Started server process [82689]
+INFO:     Started server process [89289]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
-INFO:     127.0.0.1:55230 - "GET / HTTP/1.1" 200 OK
-INFO:     ('127.0.0.1', 55234) - "WebSocket /ws" [accepted]
+INFO:     127.0.0.1:58947 - "GET / HTTP/1.1" 200 OK
+INFO:     ('127.0.0.1', 58952) - "WebSocket /ws" [accepted]
 INFO:     connection open
-INFO:     Shutting down
 INFO:     connection closed
 ERROR:    Exception in ASGI application
 Traceback (most recent call last):
@@ -16,7 +15,7 @@ Traceback (most recent call last):
     self._raise_on_disconnect(message)
   File "/opt/homebrew/anaconda3/lib/python3.12/site-packages/starlette/websockets.py", line 113, in _raise_on_disconnect
     raise WebSocketDisconnect(message["code"], message.get("reason"))
-starlette.websockets.WebSocketDisconnect: (1012, None)
+starlette.websockets.WebSocketDisconnect: (<CloseCode.NO_STATUS_RCVD: 1005>, '')
 
 During handling of the above exception, another exception occurred:
 
@@ -58,10 +57,11 @@ Traceback (most recent call last):
   File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/websocket_adapter.py", line 273, in websocket_endpoint
     del connected_to_server[username]
         ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
-KeyError: 'attt'
+KeyError: 'matt'
+INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [82689]
-Connecting user attt to chat server at 127.0.0.1:5000
+INFO:     Finished server process [89289]
+Connecting user matt to chat server at 127.0.0.1:5000
 Attempting to connect to server at 127.0.0.1:5000
-Raw server message: Connected! Users online: thermometer1, openai, attt
+Raw server message: Connected! Users online: thermometer1, openai, matt

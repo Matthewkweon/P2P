@@ -12,13 +12,12 @@ Traceback (most recent call last):
            ^^^^^^^^^^^^^^^
   File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/services/thermometer.py", line 100, in run_thermometer
     await asyncio.gather(
-  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/services/thermometer.py", line 31, in handle_incoming
-    data = await reader.read(1024)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/streams.py", line 713, in read
-    await self._wait_for_data('read')
-  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
-    await self._waiter
+  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/services/thermometer.py", line 91, in broadcast_temperature
+    await asyncio.sleep(interval)  # Broadcast interval
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/tasks.py", line 665, in sleep
+    return await future
+           ^^^^^^^^^^^^
 asyncio.exceptions.CancelledError
 
 During handling of the above exception, another exception occurred:
