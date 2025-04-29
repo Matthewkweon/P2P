@@ -1,0 +1,38 @@
+Server running on ('127.0.0.1', 5000)
+Using API at http://127.0.0.1:8000
+thermometer1 connected.
+openai connected.
+matt connected.
+matt disconnected.
+matt connected.
+openai disconnected.
+thermometer1 disconnected.
+matt disconnected.
+Traceback (most recent call last):
+  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/server.py", line 119, in run_server
+    await server.serve_forever()
+  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/base_events.py", line 371, in serve_forever
+    await self._serving_forever_fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/server.py", line 136, in <module>
+    main_entry()
+  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/server.py", line 133, in main_entry
+    main(args.host, args.port, args.api_base)
+  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/server.py", line 123, in main
+    asyncio.run(run_server(host, port, api_base))
+  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

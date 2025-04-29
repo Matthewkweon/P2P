@@ -10,6 +10,10 @@ import subprocess
 import signal
 import atexit
 from threading import Thread
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Track processes to terminate at exit
 processes = []

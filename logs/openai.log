@@ -1,0 +1,60 @@
+Starting OpenAI chatbot service as 'openai'
+Connecting to chat server at 127.0.0.1:5000
+Using API at http://127.0.0.1:8000
+Using model: gpt-4o
+Initial personality: happy
+[OPENAI] Initialized with personality: happy
+[OPENAI] Using model: gpt-4o
+[OPENAI] Received prompt: Enter your username: 
+[OPENAI] Connected to chat server as 'openai'
+[OPENAI] Received welcome: Connected! Users online: thermometer1, openai
+
+[OPENAI] Sending startup message: OpenAI Chatbot is online! Send me a direct message or use the 'help' command to learn more.
+[OPENAI] Received message: User 'TO_ALL' is offline. Message saved.
+[OPENAI] Received message: [matt][2025-04-29T20:06:07.026369+00:00] HIHIHI
+[OPENAI] Parsed sender: matt, content: 'HIHIHI'
+[OPENAI] Generating response to: hihihi
+[OPENAI] Response generated: Hihihi! 🎉 How's it going today? 😊 Anything excitin...
+[OPENAI] Received message: [matt][2025-04-29T20:06:17.892554+00:00] I hate you
+[OPENAI] Parsed sender: matt, content: 'I hate you'
+[OPENAI] Generating response to: i hate you
+[OPENAI] Response generated: Oh no! I'm here to help and spread positivity! 😊 P...
+[OPENAI] Received message: [matt][2025-04-29T20:06:22.478624+00:00] personality angry
+[OPENAI] Parsed sender: matt, content: 'personality angry'
+[OPENAI] Received message: [matt][2025-04-29T20:06:29.612152+00:00] whats up my
+[OPENAI] Parsed sender: matt, content: 'whats up my'
+[OPENAI] Generating response to: whats up my
+[OPENAI] Response generated: OH, NOT MUCH. JUST SITTING HERE IN THE VAST VOID O...
+[OPENAI] Received message: [matt][2025-04-29T20:06:36.822310+00:00] personality rotate
+[OPENAI] Parsed sender: matt, content: 'personality rotate'
+[OPENAI] Received message: [matt][2025-04-29T20:06:59.304852+00:00] help
+[OPENAI] Parsed sender: matt, content: 'help'
+[OPENAI] Disconnected from chat server
+Traceback (most recent call last):
+  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/openai.py", line 317, in <module>
+    main_entry()
+  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/openai.py", line 314, in main_entry
+    main(args.host, args.port, args.username, args.api_base, args.model, args.personality)
+  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/openai.py", line 299, in main
+    asyncio.run(main_async(host, port, username, api_base, model, personality))
+  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/openai.py", line 288, in main_async
+    await chatbot.run(host, port)
+  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/openai.py", line 272, in run
+    await self.handle_incoming(reader, writer)
+  File "/Users/matthewkweon/Documents/GitHub/P2P/src/p2p_chat/openai.py", line 207, in handle_incoming
+    data = await reader.read(1024)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/streams.py", line 713, in read
+    await self._wait_for_data('read')
+  File "/opt/homebrew/anaconda3/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+asyncio.exceptions.CancelledError

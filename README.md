@@ -155,11 +155,9 @@ For a more user-friendly experience, access the web interface at http://localhos
    - "Chat with OpenAI" - Allows you to chat to send a message to our AI bot. 
 
 5. **OpenAI Bot Commands**:
-   - `openai: help` - Get a list of available commands
    - `openai: personality happy` - Change to happy personality
    - `openai: personality angry` - Change to angry personality
    - `openai: personality spanish` - Switch to Spanish mode
-   - `openai: rotate` - Rotate to the next personality
 
 6. **Thermometer Subscription Commands**:
    - `thermometer1: subscribe` - Subscribe to the thermometer and get the temperature periodically (100 seconds) inside of your stored messages
@@ -277,11 +275,9 @@ The project includes an OpenAI-powered chatbot that can respond to users with di
    ```
 
 Special commands for the bot:
-- `openai: help` - Get a list of available commands
 - `openai: personality happy` - Change to happy personality
 - `openai: personality angry` - Change to angry personality
 - `openai: personality spanish` - Switch to Spanish mode
-- `openai: rotate` - Rotate to the next personality
 
 In the web interface, you can also click the "Chat with OpenAI" button and use the command buttons that appear.
 
