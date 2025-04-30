@@ -14,9 +14,9 @@ app = FastAPI()
 # Track active connections
 active_connections = {}  # username -> WebSocket
 connected_to_server = {}  # username -> (reader, writer)
-server_host = "127.0.0.1"
+server_host = "localhost"
 server_port = 5000
-api_base = "http://127.0.0.1:8000"
+api_base = "http://localhost:8000"
 
 # Serve static files (assuming frontend is in a 'static' directory)
 static_path = Path("static")
@@ -295,7 +295,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     pass
                 del connected_to_server[username]
 
-def main(server_addr="127.0.0.1", server_p=5000, api_url="http://127.0.0.1:8000", host="127.0.0.1", port=8080):
+def main(server_addr="localhost", server_p=5000, api_url="http://localhost:8000", host="0.0.0.0", port=8080):
     global server_host, server_port, api_base
     server_host = server_addr
     server_port = server_p
@@ -307,11 +307,11 @@ def main(server_addr="127.0.0.1", server_p=5000, api_url="http://127.0.0.1:8000"
 def main_entry():
     """Entry point for console script."""
     parser = argparse.ArgumentParser(description='P2P Chat WebSocket Adapter')
-    parser.add_argument('--host', default="127.0.0.1", help='WebSocket server host')
+    parser.add_argument('--host', default="0.0.0.0", help='WebSocket server host')
     parser.add_argument('--port', type=int, default=8080, help='WebSocket server port')
-    parser.add_argument('--server-host', default="127.0.0.1", help='Chat server host')
+    parser.add_argument('--server-host', default="localhost", help='Chat server host')
     parser.add_argument('--server-port', type=int, default=5000, help='Chat server port')
-    parser.add_argument('--api-base', default="http://127.0.0.1:8000", help='API base URL')
+    parser.add_argument('--api-base', default="http://localhost:8000", help='API base URL')
     args = parser.parse_args()
     
     main(args.server_host, args.server_port, args.api_base, args.host, args.port)

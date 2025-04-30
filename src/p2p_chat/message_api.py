@@ -53,7 +53,7 @@ def create_app(mongo_url=None):
     
     return app
 
-def main(host="127.0.0.1", port=8000, mongo_url=None):
+def main(host="0.0.0.0", port=8000, mongo_url=None):
     """Run the API server."""
     app = create_app(mongo_url)
     uvicorn.run(app, host=host, port=port)

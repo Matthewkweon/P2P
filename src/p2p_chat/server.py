@@ -3,9 +3,9 @@ import httpx
 import argparse
 from datetime import datetime, UTC
 
-DEFAULT_HOST = '127.0.0.1'  # Localhost
+DEFAULT_HOST = '0.0.0.0'  # Localhost
 DEFAULT_PORT = 5000  # Server Port
-DEFAULT_API_BASE = 'http://127.0.0.1:8000'  # FastAPI address
+DEFAULT_API_BASE = 'http://localhost:8000'  # FastAPI address
 
 clients = {}  # username -> (reader, writer)
 

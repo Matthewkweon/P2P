@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - p2p-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  p2p-chat:
+    build: .
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "5001:5000"  # Chat server (changed from 5000:5000 to avoid conflict)
+      - "8001:8000"  # Message API (changed from 8000:8000 to avoid potential conflict)
+      - "8080:8080"  # Web interface
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    networks:
+      - p2p-network
+    volumes:
+      - ./logs:/app/logs
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+
+networks:
+  p2p-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
