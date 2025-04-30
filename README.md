@@ -63,7 +63,7 @@ This project leverages a modern tech stack to deliver a flexible and scalable ch
 
 4. Create a `.env` file in the root directory with:
    ```
-   MONGO_URL=mongodb://localhost:27017
+   MONGO_URL=mongodb://p2p-mongo:27017
    OPENAI_API_KEY=your_openai_api_key_here  # Optional, for OpenAI bot
    DEFAULT_API_BASE=http://api:8000
    CHAT_SERVER_HOST=p2p-server
