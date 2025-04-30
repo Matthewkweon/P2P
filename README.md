@@ -21,6 +21,19 @@ The application consists of three main components:
 5. **Thermometer Service (`thermometer.py`)**: Simulated IoT device that broadcasts temperature readings
 6. **OpenAI Bot (`openai.py`)**: AI assistant powered by OpenAI's API
 
+## Technologies Used
+
+This project leverages a modern tech stack to deliver a flexible and scalable chat system:
+
+- **Python**: Core programming language with asyncio for asynchronous operations
+- **FastAPI**: High-performance API framework for the message storage service
+- **MongoDB**: NoSQL database for storing messages and user data
+- **WebSockets**: For real-time web interface communication
+- **Docker**: Containerization for easy deployment and development
+- **HTML/CSS/JavaScript**: Frontend web interface with responsive design
+- **OpenAI API**: Integration for AI-powered chat bot functionality
+- **pytest**: Comprehensive testing framework
+
 ## Requirements
 
 - Python 3.12.4
@@ -127,16 +140,19 @@ For a more user-friendly experience, access the web interface at http://localhos
 
 4. **Command Buttons**:
    - "Check Stored Messages" - Retrieves any stored messages for you (including subscription messages)
+      - This includes any messages that were sent to you while the user was offline (uses fastapi to store messages and mongoDB to store them)
    - "Subscribe to Thermometer" - Subscribe to temperature updates
    - "Unsubscribe" - Stop receiving temperature updates
    - "Chat with OpenAI" - Allows you to chat to send a message to our AI bot. 
 
 5. **OpenAI Bot Commands**:
+   - Simply sending a message to "openai" will allow you to talk to an AI bot that I have configured. The initial personality is happy. You can change it with the following commands:
    - `openai: personality happy` - Change to happy personality
    - `openai: personality angry` - Change to angry personality
    - `openai: personality spanish` - Switch to Spanish mode
 
 6. **Thermometer Subscription Commands**:
+   - A thermometer subscription involves just a message every 100 seconds about the temperature outside. Use the following commands. You can see the messages in your stored messages. Click "Stored messages"
    - `thermometer1: subscribe` - Subscribe to the thermometer and get the temperature periodically (100 seconds) inside of your stored messages
    - `thermometer1: unsubscribe` - Don't receive any messages anymore
    - `thermometer1: reboot` - Reboot the subscription
