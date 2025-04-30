@@ -54,11 +54,57 @@ The application consists of three main components:
    OPENAI_API_KEY=your_openai_api_key_here  # Optional, for OpenAI bot
    ```
 
-## Usage
+## Running with Docker (Recommended)
 
-### Using the Launcher Script (Recommended)
+The easiest way to run the application is using Docker and Docker Compose:
 
-The easiest way to run the application is using the launcher script, which starts all components in the correct order:
+### Prerequisites for Docker
+
+- Docker
+- Docker Compose
+
+### Starting with Docker
+
+1. Build and start the services:
+   ```bash
+   docker-compose up --build
+   ```
+
+   This will:
+   - Start a MongoDB container
+   - Start the Message API on port 8001
+   - Start the Chat server on port 5001
+   - Start the Web interface on port 8080
+   - Start the Thermometer service
+   - Start the OpenAI bot (if API key is configured)
+
+2. Access the web interface:
+   Open your browser and navigate to [http://localhost:8080](http://localhost:8080)
+
+3. Stopping the application:
+   ```bash
+   # Stop the containers but keep the data
+   docker-compose down
+   
+   # Stop the containers and delete all data
+   docker-compose down -v
+   ```
+
+### Docker Troubleshooting
+
+If you encounter port conflicts, edit the `docker-compose.yml` file to change the exposed ports:
+```yaml
+ports:
+  - "5002:5000"  # Change 5001 to another port
+  - "8002:8000"  # Change 8001 to another port
+  - "8081:8080"  # Change 8080 to another port
+```
+
+## Standard Usage (Without Docker)
+
+### Using the Launcher Script
+
+The launcher script starts all components in the correct order:
 
 ```bash
 python launcher.py
@@ -337,7 +383,8 @@ P2P/
 ├── .env                   # Environment variables (mongodb and openai key)
 ├── .gitignore             # Git ignore file
 ├── README.md              # This file
-├── install.sh             # Installation script for Unix systems
+├── Dockerfile             # Docker container configuration
+├── docker-compose.yml     # Docker Compose configuration
 ├── launcher.py            # Script to launch all components
 ├── pyproject.toml         # Python package configuration
 ├── requirements.txt       # Project dependencies
@@ -358,7 +405,6 @@ P2P/
 │   └── tests/             # Test directory
 │       └── test_chat_app.py # Test suite
 ```
-Ignore the dummy_server_client (it is for the first part of testing the client/server without asyncio)
 
 ## Known Limitations
 
